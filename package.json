@@ -1,0 +1,37 @@
+{
+  "name": "public-opinion",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=24 <25" },
+  "packageManager": "pnpm@12.14.0",
+  "scripts": {
+    "build": "tsc --noEmit && vite build client",
+    "start": "tsx server/main.ts",
+    "test": "vitest run",
+    "test:db": "vitest run --config vitest.db.config.ts",
+    "test:e2e": "playwright test"
+  },
+  "dependencies": {
+    "@fastify/static": "8.3.0",
+    "@fastify/websocket": "11.2.0",
+    "fastify": "5.6.2",
+    "kysely": "0.28.8",
+    "pg": "8.16.3",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "react-router": "7.9.5",
+    "tsx": "4.20.6",
+    "zod": "4.1.12"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.61.1",
+    "@types/node": "24.10.0",
+    "@types/pg": "8.15.6",
+    "@types/react": "19.2.2",
+    "@types/react-dom": "19.2.2",
+    "@types/ws": "8.18.1",
+    "typescript": "5.9.3",
+    "vite": "7.2.2",
+    "vitest": "4.0.8"
+  }
+}

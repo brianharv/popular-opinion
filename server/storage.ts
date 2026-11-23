@@ -8,6 +8,7 @@ export type Checkpoint = {
   hostId: string
   seats: Seat[]
   result?: Result
+  ended?: boolean
   remainingPrompts?: string[]
 } & (
   | { match: Match; answeringId?: never }

@@ -1,6 +1,6 @@
-# Public Opinion — Game Bible
+# Popular Opinion — Game Bible
 
-Design reference for the browser version of Public Opinion. Players gather in the same room and use their own devices to answer Prompts, support an answer, or challenge it. A private Modifier determines how the Answering Player scores and can change what happens after scoring.
+Design reference for the browser version of Popular Opinion. Players gather in the same room and use their own devices to answer Prompts, support an answer, or challenge it. A private Modifier determines how the Answering Player scores and can change what happens after scoring.
 
 This edition uses the refined rulings in [AGENTS.md](https://chatgpt.com/library?file_id=libfile_dce70daf99a08191808d235ac1b08eac&account_id=personal). The card spreadsheet supplies the Prompt text. See **Open design decisions** for cases still awaiting a ruling.
 
@@ -27,23 +27,23 @@ Use a private room for 4–12 players. The game is designed for co-located play.
 
 ## Anatomy of a turn
 
-1. Draw a Prompt and Modifier together. The Prompt is public and the Modifier is private to the Answering Player until scoring. Show opponents a brief “[screenname]’s turn” banner, then the Prompt.
-2. The Answering Player gets 30 seconds to submit and revise. Show the last server-accepted submission beside the editable draft. At zero, lock the last submitted answer. If no answer was submitted, skip directly to a 10-second shared “No answer submitted” scoring view with current standings, zero awards, and no Modifier reveal.
-3. Run a three-second preparation buffer with a prominent countdown for opponents. Accept no gameplay actions. Reveal the locked answer when the countdown reaches zero.
+1. Draw a Prompt and Modifier together. Show the Answering Player only the Modifier for 5 seconds and then only the Prompt for 5 seconds. During both previews, opponents see a single waiting screen with the Answering Player’s name and a countdown. Reveal the Prompt to opponents when the answer timer starts. Keep the Modifier private to the Answering Player until scoring.
+2. The Answering Player gets 30 seconds to submit and revise. After a submission, show the server-accepted answer and let the player reopen the form to revise it. At zero, lock the last submitted answer. If no answer was submitted, skip directly to a 10-second shared “No answer submitted” scoring view with current standings, zero awards, and no Modifier reveal.
+3. Reveal the locked answer as soon as the answer timer reaches zero.
 4. Run the 30-second Phase 1 response window. Opponents explicitly submit Support or Challenge and can change their submitted choice until the deadline. Show each player their last accepted choice and answer. Draft edits or selecting an option in the form leave the accepted choice intact. An absent response or a challenge without a valid nonblank submission defaults to Support.
 5. If support votes total zero, skip Phase 2, reveal the Modifier at scoring, and award zero by default. An explicit Modifier override can still award points or deduct points here.
-6. Otherwise, reveal challenge answers and run Phase 2 for 30 seconds. Only Phase 1 supporters can move their vote, choosing between the original answer and valid challenge answers. A supporter who takes no action retains their initial allocation. Players see their own current action, and final vote allocations and totals become public at scoring.
-7. When the Phase 2 timer reaches zero, all votes must point to valid answers before scoring. Resolve the Modifier and challenger awards, commit the outcome, then show the shared scoring view for 10 seconds before automatically advancing. Show the same results on every device and highlight the viewer's standings row with a visible “You” label.
+6. Otherwise, reveal challenge answers and run Phase 2 for 15 seconds. Only Phase 1 supporters can move their vote, choosing between the original answer and valid challenge answers. A supporter who takes no action retains their initial allocation. Players see their own current action, and final vote allocations and totals become public at scoring.
+7. When the Phase 2 timer reaches zero, all votes must point to valid answers before scoring. Resolve the Modifier and challenger awards, commit the outcome, then show final votes for 5 seconds followed by the standings for 10 seconds before automatically advancing. Show the same results on every device and highlight the viewer's standings row with a visible “You” label.
 
-Timed phases run to zero even if everyone has submitted. Duplicate selection pauses the active voting clock. Cancellation or selection timeout restores the exact remaining time. A completed review restores the greater of the paused time and 10 seconds when play resumes.
+Timed phases run to zero even if everyone has submitted. The voting clock keeps running while a player selects duplicates and pauses when the server accepts the flag. A completed review restores the greater of the paused time and 10 seconds when play resumes.
 
 ## Duplicate review
 
-- During Phase 2, when at least two challenge answers can be selected, any player except the Answering Player can select two or more for review. Pause the voting clock when selection starts. Give selection a short deadline and a Cancel action. Canceling or letting selection time out preserves the player's opportunity to flag.
+- During Phase 2, when at least two challenge answers can be selected, any player except the Answering Player can select two or more for review. Give selection a Cancel action and accept flags until the voting deadline. Canceling preserves the player's opportunity to flag.
 - Each player can initiate one submitted review per turn. The same unordered set of answer IDs can be reviewed only once per turn. A new set can include previously reviewed or disqualified entries if it includes at least one answer still in play.
 - Everyone sees the flagged answers. Players whose answers are flagged spectate with an explanation. Other players, including the Answering Player, are eligible to vote.
-- The review timer runs for 30 seconds. At zero, assign yes to eligible players without a ballot. A strict majority of eligible voters is required. Ties fail.
-- If review passes, disable the flagged answers. Atomically return their allocated votes to the original answer, then notify affected voters that they can move their vote again. A failed review leaves existing disqualifications in place.
+- The review timer runs for 10 seconds. At zero, assign yes to eligible players without a ballot. A strict majority of eligible voters is required. Ties fail.
+- If review passes, disable the flagged answers. Atomically return their allocated votes to the original answer, then notify affected voters that they can move their vote again. A failed review leaves existing disqualifications in place. Show the review result briefly before resuming final voting.
 
 ## Scoring
 
@@ -130,7 +130,7 @@ Tentative award of 2 per support vote plus 2 per retained vote. If the Answering
 ## Tiebreakers
 
 - Contenders receive the same Prompt with no Modifier. Allow 30 seconds to submit or revise. If nobody submits, give the same contenders a fresh Prompt. If exactly one submits, that player wins. Otherwise eliminate contenders who missed the deadline.
-- Run the three-second buffer and reveal submitted answers together for a 30-second ballot. Show anonymous answer options in the same shuffled order on every device.
+- Reveal submitted answers together as soon as the answer window closes and start the 30-second ballot. Show anonymous answer options in the same shuffled order on every device.
 - Only players who aren't answering the current Prompt can vote or initiate and participate in duplicate review. An eliminated contender can vote on the next Prompt.
 - Each vote counts one point for this ballot. A missed ballot is an abstention. If one contender receives the most votes, they win. If multiple contenders tie for first, only those contenders advance to a fresh Prompt. After two consecutive completed ballots with zero votes, declare a shared tie among the remaining contenders.
 - Use the regular duplicate pause and review rules. If at least two answers remain valid, clear any votes for disqualified answers, notify affected voters, and resume the ballot with at least 10 seconds left. If one remains, that contender wins immediately. If none remain, restart with a fresh Prompt for the contenders whose answers were on that ballot. In those last two cases the paused ballot does not resume.
@@ -153,9 +153,9 @@ Tentative award of 2 per support vote plus 2 per retained vote. If the Answering
 | Four-player Provacateur, everyone challenges | Answering Player −5, others zero. |
 | Four-player Suddenly Libertarian, everyone challenges | Skip Phase 2. Answering Player earns 4 points (3 × 3 − 5), others zero. |
 | Ice Breaker starts at 2 points and nobody challenges | Apply the −3 award. Show a cumulative score of −1 in the standings. |
-| Answering Player submits Paris, then edits to Rome without submitting | Paris reveals only after the preparation countdown. |
+| Answering Player submits Paris, then edits to Rome without submitting | Paris reveals as soon as the answer timer reaches zero. |
 | Answering Player times out with no submission and The Troll | Zero points and no Modifier reveal on any opponent device. |
-| Duplicate review paused at 6 or 14 seconds | Completed reviews restore 10 or 14 seconds respectively. A canceled selection at 6 resumes with 6. |
+| Duplicate review paused at 6 or 14 seconds | Completed reviews restore 10 or 14 seconds respectively. Opening or canceling the selector leaves the voting clock running. |
 | Duplicates pass while a challenge holds a vote | Vote returns atomically to the original answer and the voter sees it. |
 | Five eligible duplicate voters, two yes and three no | Review fails. A separate case verifies missing ballots become yes at the deadline. |
 | Four browser sessions inspect live updates and reconnect | Private Modifier and vote allocations appear only in the intended views before scoring. |
@@ -167,7 +167,7 @@ Tentative award of 2 per support vote plus 2 per retained vote. If the Answering
 
 ## Open design decisions
 
-- Choose the short duplicate-selection deadline and settle whether submitting a flag automatically records the flagger's yes ballot.
+- Settle whether submitting a flag automatically records the flagger’s yes ballot.
 - Confirm whether any Modifier besides The Troll, Provacateur, and Suddenly Libertarian overrides zero-support scoring.
 - Confirm room join details and host permissions beyond starting and ending the match, including whether a host can transfer control.
 - Confirm tiebreaker ballot revision behavior and the presentation timing after a tiebreaker result.

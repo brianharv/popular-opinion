@@ -92,9 +92,10 @@ export async function createApp(url: string, timing = durations, serveClient = f
 
   function schedule(room: Room, retry = false) {
     clearTimeout(room.timer)
-    if (closing || (room.turn ? room.turn.deadline === undefined : !room.checkpoint)) return
+    if (closing || room.checkpoint?.ended || (room.turn ? room.turn.deadline === undefined : !room.checkpoint)) return
     room.timer = setTimeout(() => {
       void serialize(room, async () => {
+        if (room.checkpoint?.ended) return
         const current = room.turn
         if (!current) {
           await beginTurn(room)
@@ -103,15 +104,15 @@ export async function createApp(url: string, timing = durations, serveClient = f
           return
         }
         const next = advance(current, Date.now())
-        if (next.phase === 'scoring' && current.phase !== 'scoring') {
+        if ((next.phase === 'final-votes' || next.phase === 'scoring') && next.result && !current.result) {
           const before = room.checkpoint!
-          const result = next.result!
+          const result = next.result
           const after = before.match
             ? { ...before, match: recordTurn(before.match, result.awards), result }
             : { ...before, result }
           await storage.commit(room.code, before, after)
           room.checkpoint = after
-          next.deadline = Date.now() + timing.scoring
+          next.deadline = Date.now() + timing[next.phase]
         }
         if (next.phase === 'complete' && room.checkpoint?.match && !room.checkpoint.match.outcome) {
           await beginTurn(room)
@@ -130,6 +131,7 @@ export async function createApp(url: string, timing = durations, serveClient = f
   for (const { code, checkpoint } of await storage.load()) {
     const room = makeRoom(code, checkpoint.hostId, checkpoint.seats)
     room.checkpoint = checkpoint
+    if (checkpoint.ended) continue
     if (checkpoint.match ? !checkpoint.match.outcome : !checkpoint.result) {
       await beginTurn(room)
       schedule(room)
@@ -194,6 +196,11 @@ export async function createApp(url: string, timing = durations, serveClient = f
             socket.close(1008)
             return
           }
+          if (room.checkpoint?.ended) {
+            send(socket, { ended: true })
+            socket.close(1000)
+            return
+          }
           connected = { room, seat: seat.id }
           room.sockets.set(socket, seat.id)
           if (room.checkpoint) snapshot(room, socket, seat.id)
@@ -203,6 +210,20 @@ export async function createApp(url: string, timing = durations, serveClient = f
         const { room, seat } = connected
         const submitted = actionSchema.parse(input)
         void serialize(room, async () => {
+          if (room.checkpoint?.ended) return
+          if (submitted.type === 'end-game') {
+            if (seat !== room.hostId || !room.checkpoint) throw new Error('Only the host can end a game in progress.')
+            const ended = { ...room.checkpoint, ended: true }
+            await storage.commit(room.code, room.checkpoint, ended)
+            room.checkpoint = ended
+            room.turn = undefined
+            clearTimeout(room.timer)
+            for (const peer of room.sockets.keys()) {
+              send(peer, { ended: true })
+              peer.close(1000)
+            }
+            return
+          }
           if (submitted.type === 'start') {
             if (seat !== room.hostId || room.checkpoint) throw new Error('Only the host can start a waiting room.')
             if (room.seats.length < minimumPlayers || !allSeatsConnected(room)) {
@@ -224,7 +245,9 @@ export async function createApp(url: string, timing = durations, serveClient = f
             }
           } else {
             if (!room.turn || submitted.turnId !== room.turn.id) throw new Error('That action is no longer available.')
+            const phase = room.turn.phase
             room.turn = action(room.turn, seat, submitted, Date.now())
+            if (room.turn.phase !== phase) schedule(room)
           }
           broadcast(room)
         }).catch(error => send(socket, { error: error.message }))

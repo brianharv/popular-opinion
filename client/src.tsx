@@ -6,11 +6,13 @@ import {
   type CSSProperties,
   type FormEvent
 } from 'react';
+import { CountdownCircleTimer } from 'react-countdown-circle-timer';
 import {
   BrowserRouter,
   Link,
   Route,
   Routes,
+  useLocation,
   useNavigate,
   useParams
 } from 'react-router';
@@ -24,15 +26,30 @@ import type {
   Action,
   Credential,
   MatchFormat,
+  Modifier,
   RoomView,
   ServerMessage
 } from '../shared/protocol';
+import { modifierSubtitles } from './modifier-subtitles';
 import './style.css';
 
-const seatKey = (code: string) => `public-opinion:${code}`;
+const seatKey = (code: string) => `popular-opinion:${code}`;
+const quote = (text?: string) => text === undefined ? undefined : `“${text}”`;
+
+function readSeatToken(code: string) {
+  const key = seatKey(code);
+  const legacyKey = `public-opinion:${code}`;
+  const token = localStorage.getItem(key) ?? localStorage.getItem(legacyKey);
+  if (token && localStorage.getItem(legacyKey)) {
+    localStorage.setItem(key, token);
+    localStorage.removeItem(legacyKey);
+  }
+  return token;
+}
 
 function Home() {
   const navigate = useNavigate();
+  const { state } = useLocation();
   const [mode, setMode] = useState<'create' | 'join'>();
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
@@ -46,7 +63,7 @@ function Home() {
     setError('');
     setBusy(true);
     try {
-      if (mode === 'join' && localStorage.getItem(seatKey(code))) {
+      if (mode === 'join' && readSeatToken(code)) {
         navigate(`/room/${code}`);
         return;
       }
@@ -76,10 +93,11 @@ function Home() {
 
   return (
     <>
+      {state?.gameEnded === true && <p role='status'>The game has ended.</p>}
       <section className='hero'>
         <span className='tag'>A party game for 4–12 players</span>
         <h1>
-          Public Opinion<span>.</span>
+          Popular Opinion<span>.</span>
         </h1>
         <p>Give your best answer. See who agrees.</p>
       </section>
@@ -212,13 +230,32 @@ function RoomCode({ code }: { code: string }) {
     'idle'
   );
 
-  async function copy() {
+  async function copy(button: HTMLButtonElement) {
     setCopyStatus('idle');
     try {
       await navigator.clipboard.writeText(code);
       setCopyStatus('copied');
+      return;
+    } catch {
+      // Try the selection-based copy on insecure origins or when clipboard access is denied.
+    }
+
+    if (!button.isConnected) return;
+    const field = document.createElement('textarea');
+    field.value = code;
+    field.readOnly = true;
+    field.className = 'clipboard-fallback';
+    (button.closest('dialog') ?? document.body).append(field);
+    try {
+      field.focus({ preventScroll: true });
+      field.select();
+      field.setSelectionRange(0, code.length);
+      setCopyStatus(document.execCommand('copy') ? 'copied' : 'failed');
     } catch {
       setCopyStatus('failed');
+    } finally {
+      field.remove();
+      button.focus({ preventScroll: true });
     }
   }
 
@@ -231,7 +268,7 @@ function RoomCode({ code }: { code: string }) {
         type='button'
         className='outline copy-code'
         aria-label='Copy room code'
-        onClick={copy}
+        onClick={(event) => void copy(event.currentTarget)}
       >
         <svg
           aria-hidden='true'
@@ -262,8 +299,104 @@ function RoomCode({ code }: { code: string }) {
   );
 }
 
+function RoomMenu({
+  code,
+  error,
+  endGame,
+  online
+}: {
+  code: string;
+  error: string;
+  endGame?: () => void;
+  online: boolean;
+}) {
+  const dialog = useRef<HTMLDialogElement>(null);
+  const dialogId = useId();
+  const navigate = useNavigate();
+
+  return (
+    <>
+      <button
+        type='button'
+        className='outline room-menu-toggle'
+        aria-label='Open room menu'
+        aria-haspopup='dialog'
+        aria-controls={dialogId}
+        onClick={() => dialog.current?.showModal()}
+      >
+        <svg
+          aria-hidden='true'
+          width='22'
+          height='22'
+          viewBox='0 0 24 24'
+          fill='none'
+          stroke='currentColor'
+          strokeWidth='2'
+          strokeLinecap='round'
+        >
+          <path d='M4 6h16M4 12h16M4 18h16' />
+        </svg>
+      </button>
+      <dialog
+        ref={dialog}
+        id={dialogId}
+        aria-label='Room menu'
+        className='card room-menu'
+      >
+        <RoomCode code={code} />
+        {error && <p role='alert'>{error}</p>}
+        <form method='dialog' className='room-menu-actions'>
+          {endGame ? (
+            <button
+              type='button'
+              disabled={!online}
+              onClick={endGame}
+            >
+              End Game
+            </button>
+          ) : (
+            <button type='button' onClick={() => navigate('/')}>
+              Leave Game
+            </button>
+          )}
+          <button className='outline room-menu-close' autoFocus>
+            Close
+          </button>
+        </form>
+      </dialog>
+    </>
+  );
+}
+
+function ConnectingToRoom() {
+  const dialog = useRef<HTMLDialogElement>(null);
+  const statusId = useId();
+
+  useEffect(() => {
+    const modal = dialog.current!;
+    modal.showModal();
+    return () => modal.close();
+  }, []);
+
+  return (
+    <dialog
+      ref={dialog}
+      className='card room-loading'
+      aria-labelledby={statusId}
+      onCancel={(event) => event.preventDefault()}
+    >
+      <span className='room-loading-spinner' aria-hidden='true' />
+      <p id={statusId} role='status'>
+        Connecting to room…
+      </p>
+      <Link to='/'>Back to home</Link>
+    </dialog>
+  );
+}
+
 function Room() {
   const { code = '' } = useParams();
+  const navigate = useNavigate();
   const [view, setView] = useState<RoomView>();
   const [error, setError] = useState('');
   const [online, setOnline] = useState(false);
@@ -271,7 +404,7 @@ function Room() {
   const offset = useRef(0);
 
   useEffect(() => {
-    const token = localStorage.getItem(seatKey(code));
+    const token = readSeatToken(code);
     if (!token) {
       setError('Join this room from the home page first.');
       return;
@@ -292,13 +425,22 @@ function Room() {
           setView(message.view);
           setOnline(true);
           setError('');
+        } else if ('ended' in message) {
+          stopped = true;
+          localStorage.removeItem(seatKey(code));
+          navigate('/', { replace: true, state: { gameEnded: true } });
         } else setError(message.error);
       };
       ws.onclose = (event) => {
         if (stopped) return;
         setOnline(false);
-        if (event.code === 1008) localStorage.removeItem(seatKey(code));
-        else retry = setTimeout(connect, 700);
+        if (event.code === 1008) {
+          localStorage.removeItem(seatKey(code));
+          setError((current) => current || 'Your seat could not be restored.');
+        } else {
+          setError('');
+          retry = setTimeout(connect, 700);
+        }
       };
     }
     connect();
@@ -307,7 +449,7 @@ function Room() {
       clearTimeout(retry);
       socket.current?.close();
     };
-  }, [code]);
+  }, [code, navigate]);
 
   function send(action: Action) {
     if (socket.current?.readyState !== WebSocket.OPEN) return false;
@@ -319,41 +461,97 @@ function Room() {
     return true;
   }
 
+  function endGame() {
+    if (socket.current?.readyState === WebSocket.OPEN && window.confirm('End the game for everyone?')) {
+      socket.current.send(
+        JSON.stringify({ type: 'end-game', confirmed: true })
+      );
+    }
+  }
+
+  const connecting = !online && !error;
   return (
     <>
-      <header className='top'>
-        <Link to='/'>Public Opinion</Link>
-        <RoomCode key={code} code={code} />
-      </header>
+      {view?.phase !== 'complete' && (
+        <header className='top'>
+          {(!view || view.phase === 'lobby') && (
+            <Link to='/' className='room-back' aria-label='Back to home'>
+              <span aria-hidden='true'>←</span>
+            </Link>
+          )}
+          {view?.phase === 'lobby' && <RoomCode key={code} code={code} />}
+          {view && view.phase !== 'lobby' && (
+            <RoomMenu
+              key={code}
+              code={code}
+              error={error}
+              online={online}
+              endGame={view.hostId === view.you ? endGame : undefined}
+            />
+          )}
+        </header>
+      )}
       {error && (
         <p role='alert' className='card'>
           {error}
         </p>
       )}
-      {!online && !error && <p role='status'>Connecting to room…</p>}
+      {connecting && !view && (
+        <section className='card waiting-room' aria-hidden='true'>
+          <h1>Waiting room</h1>
+        </section>
+      )}
       {view && (
         <Turn
-          key={`${view.turnId ?? 'room'}:${view.phase}`}
+          key={`${view.turnId ?? 'room'}:${view.previewWait ? 'preview-wait' : view.phase}`}
           view={view}
           send={send}
           online={online}
+          endGame={view.hostId === view.you ? endGame : undefined}
           offset={offset.current}
         />
       )}
+      {connecting && <ConnectingToRoom />}
     </>
   );
 }
 
-function Timer({ deadline, offset }: { deadline: number; offset: number }) {
-  const [now, setNow] = useState(Date.now);
-  useEffect(() => {
-    const timer = setInterval(() => setNow(Date.now()), 100);
-    return () => clearInterval(timer);
-  }, []);
+function Timer({
+  deadline,
+  duration,
+  offset
+}: {
+  deadline: number;
+  duration?: number;
+  offset: number;
+}) {
+  if (!duration) return null;
+  const seconds = duration / 1000;
+  const remaining = Math.min(
+    seconds,
+    Math.max(0, (deadline - Date.now() - offset) / 1000)
+  );
   return (
-    <span className='timer' aria-label='Seconds remaining'>
-      {Math.max(0, Math.ceil((deadline - now - offset) / 1000))}s
-    </span>
+    <div className='timer'>
+      <CountdownCircleTimer
+        isPlaying={remaining > 0}
+        duration={seconds}
+        initialRemainingTime={remaining}
+        updateInterval={1}
+        size={40}
+        strokeWidth={5}
+        strokeLinecap='butt'
+        colors={remaining > 0 ? '#1c4f86' : '#ddd7d2'}
+        trailColor='#ddd7d2'
+      >
+        {({ remainingTime }) => (
+          <span
+            role='timer'
+            aria-label={`${remaining > 0 ? remainingTime : 0} seconds remaining`}
+          />
+        )}
+      </CountdownCircleTimer>
+    </div>
   );
 }
 
@@ -442,40 +640,176 @@ function MatchSetup({
   );
 }
 
+function ModifierCard({ modifier }: { modifier: Modifier }) {
+  const subtitle = modifierSubtitles.get(modifier.name);
+  return (
+    <aside>
+      <strong className='modifier-title'>{modifier.name}</strong>
+      {subtitle && <p className='modifier-subtitle'>{subtitle}</p>}
+      <p>{modifier.rule}</p>
+    </aside>
+  );
+}
+
+const scoringLeadIn = 300;
+const scoreTransferDuration = 400;
+const scoreTransferPause = 200;
+
+function Standings({
+  players,
+  you,
+  scores,
+  awards,
+  scoringStartedAt,
+  offset
+}: {
+  players: RoomView['players'];
+  you: string;
+  scores: Record<string, number>;
+  awards: Record<string, number>;
+  scoringStartedAt?: number;
+  offset: number;
+}) {
+  const [now, setNow] = useState(Date.now);
+  let nextStart = scoringLeadIn;
+  const rows = [...players]
+    .sort((a, b) => scores[b.id] - scores[a.id])
+    .map((player) => {
+      const award = awards[player.id];
+      const startsAt = nextStart;
+      nextStart +=
+        (award === 0 ? 0 : scoreTransferDuration) + scoreTransferPause;
+      return { player, award, startsAt };
+    });
+  const sequenceDuration = nextStart - scoreTransferPause;
+
+  useEffect(() => {
+    if (scoringStartedAt === undefined) return;
+    const endsAt = scoringStartedAt + sequenceDuration - offset;
+    setNow(Date.now());
+    if (Date.now() >= endsAt) return;
+    const interval = setInterval(() => {
+      const current = Date.now();
+      setNow(current);
+      if (current >= endsAt) clearInterval(interval);
+    }, 25);
+    return () => clearInterval(interval);
+  }, [scoringStartedAt, offset, sequenceDuration]);
+
+  const elapsed =
+    scoringStartedAt === undefined
+      ? sequenceDuration
+      : now + offset - scoringStartedAt;
+
+  return (
+    <ul className='rows standings'>
+      {rows.map(({ player, award, startsAt }) => {
+        const progress = Math.max(
+          0,
+          Math.min(1, (elapsed - startsAt) / scoreTransferDuration)
+        );
+        const transferred =
+          Math.sign(award) * Math.floor(Math.abs(award) * progress);
+        const remaining = award - transferred;
+        const showChange = award === 0 ? elapsed < startsAt : remaining !== 0;
+        return (
+          <li
+            key={player.id}
+            className={player.id === you ? 'your-row' : undefined}
+          >
+            <span>
+              {player.name}{' '}
+              {player.id === you && <span className='you'>You</span>}
+            </span>
+            <span className='score'>
+              {showChange && (
+                <span
+                  className='score-change'
+                  data-direction={Math.sign(remaining)}
+                >
+                  {remaining >= 0 ? '+' : ''}
+                  {remaining}
+                </span>
+              )}
+              <strong>{scores[player.id] - remaining} pts</strong>
+            </span>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
+function DuplicateFlag({
+  entries,
+  online,
+  send
+}: {
+  entries: RoomView['entries'];
+  online: boolean;
+  send: (action: Action) => boolean;
+}) {
+  const dialog = useRef<HTMLDialogElement>(null);
+  const titleId = useId();
+  const [selected, setSelected] = useState<string[]>([]);
+  const canSubmit = selected.length >= 2 &&
+    entries.some((entry) => selected.includes(entry.id) && !entry.disqualified);
+  return (
+    <>
+      <button type='button' className='outline report-duplicates' disabled={!online} onClick={() => dialog.current?.showModal()}>
+        Report Duplicates
+      </button>
+      <dialog ref={dialog} onClose={() => setSelected([])} aria-labelledby={titleId} className='card room-menu'>
+        <h2 id={titleId}>Flag duplicate answers</h2>
+        <p>Select at least two challenge answers, including one still in play.</p>
+        <form onSubmit={(event) => {
+          event.preventDefault();
+          if (online && canSubmit && send({ type: 'flag-duplicates', phase: 'voting', answerIds: selected })) {
+            dialog.current?.close();
+          }
+        }}>
+          {entries.map((entry) => (
+            <label key={entry.id} className='duplicate-choice'>
+              <input type='checkbox' checked={selected.includes(entry.id)} onChange={(event) => {
+                setSelected(event.currentTarget.checked
+                  ? [...selected, entry.id]
+                  : selected.filter((id) => id !== entry.id));
+              }} />
+              <span>{quote(entry.text)}{entry.disqualified && <small className='duplicate-label'> Duplicate</small>}</span>
+            </label>
+          ))}
+          <button disabled={!online || !canSubmit}>Submit flag</button>
+          <button type='button' className='outline' onClick={() => dialog.current?.close()}>Cancel</button>
+        </form>
+      </dialog>
+    </>
+  );
+}
+
 function Turn({
   view,
   send,
   online,
-  offset
+  offset,
+  endGame
 }: {
   view: RoomView;
   send: (action: Action) => boolean;
   online: boolean;
   offset: number;
+  endGame?: () => void;
 }) {
-  const { players, phase, you, result, match } = view;
+  const { players, phase, you, result, match, accepted } = view;
   const [draft, setDraft] = useState('');
   const [choice, setChoice] = useState(
-    view.accepted?.type === 'challenge' ? 'challenge' : 'support'
+    accepted?.type === 'challenge' ? 'challenge' : 'support'
   );
-  const [banner, setBanner] = useState(
-    () => (view.bannerUntil ?? 0) > Date.now() + offset
-  );
-  useEffect(() => {
-    if (view.bannerUntil === undefined) return;
-    const timer = setTimeout(
-      () => setBanner(false),
-      Math.max(0, view.bannerUntil - Date.now() - offset)
-    );
-    return () => clearTimeout(timer);
-  }, [view.bannerUntil, offset]);
+  const [editingFrom, setEditingFrom] = useState<string>();
+  const acceptedText = accepted && 'text' in accepted ? accepted.text : '';
+  const submissionKey = JSON.stringify(accepted);
+  const showSubmission = editingFrom !== submissionKey ? accepted : undefined;
   const answering = view.answeringId === you;
   const name = (id: string) => players.find((player) => player.id === id)?.name;
-  const row = (id: string) => (
-    <>
-      {name(id)} {id === you && <span className='you'>You</span>}
-    </>
-  );
 
   const format = match?.format;
   const progress =
@@ -537,10 +871,103 @@ function Turn({
     );
   }
 
+  if (view.previewWait) {
+    const { deadline, duration } = view.previewWait;
+    return (
+      <div className='round-preview'>
+        <section className='card turn-transition horizontal-center'>
+          <div className='preview-wait-timer'>
+            <Timer key={`${deadline}:${online}`} deadline={deadline} duration={duration} offset={offset} />
+          </div>
+          <h1>{name(view.answeringId!)}’s turn.</h1>
+          <p>Please wait while they review the prompt and modifier.</p>
+        </section>
+      </div>
+    );
+  }
+
+  if (phase === 'modifier-preview' || phase === 'prompt-preview') {
+    return (
+      <div className='round-preview'>
+        <section className='card turn-transition'>
+          {phase === 'modifier-preview' && view.modifier ? (
+            <ModifierCard modifier={view.modifier} />
+          ) : (
+            <h1 className='horizontal-center'>{quote(view.prompt)}</h1>
+          )}
+        </section>
+      </div>
+    );
+  }
+
+  if (view.duplicateReview) {
+    const { eligible, ballot, outcome } = view.duplicateReview;
+    return (
+      <section className='card duplicate-transition'>
+        <div className='phase'>
+          <h1>{outcome ? 'Duplicate review result' : 'Are these answers duplicates?'}</h1>
+          {view.deadline !== undefined && (
+            <Timer deadline={view.deadline} duration={view.phaseDuration} offset={offset} />
+          )}
+        </div>
+        {outcome ? (
+          <p role='status'>
+            {outcome.passed ? 'Answers deemed duplicates.' : 'Answers were not deemed duplicates.'}
+            {' '}{outcome.yes} yes · {outcome.no} no.
+          </p>
+        ) : eligible ? (
+          <div className='duplicate-vote-actions'>
+            <button type='button' className='outline' aria-pressed={ballot === true}
+              disabled={!online} onClick={() => send({ type: 'vote-duplicates', phase: 'duplicate-review', yes: true })}>Yes</button>
+            <button type='button' className='outline' aria-pressed={ballot === false}
+              disabled={!online} onClick={() => send({ type: 'vote-duplicates', phase: 'duplicate-review', yes: false })}>No</button>
+          </div>
+        ) : (
+          <p>You’re spectating because one of your answers was flagged.</p>
+        )}
+        <ul className='rows vote-rows'>
+          {view.entries.map((entry) => (
+            <li key={entry.id}>
+              <span><strong>{quote(entry.text)}</strong></span>
+            </li>
+          ))}
+        </ul>
+      </section>
+    );
+  }
+
+  if (phase === 'final-votes' && result) {
+    return (
+      <section className='card results-transition'>
+        <h1>Final votes</h1>
+        <ul className='rows'>
+          {result.entries.map((entry) => {
+            const voters = Object.entries(result.votes)
+              .filter(([, id]) => id === entry.id)
+              .map(([voter]) => name(voter));
+            return (
+              <li key={entry.id}>
+                <span>
+                  <strong>{quote(entry.text)}</strong>
+                  {entry.disqualified && <small className='duplicate-label'> Duplicate</small>}
+                  <small>
+                    {name(entry.authorId)}
+                    {voters.length > 0 && ` · Voted for by ${voters.join(', ')}`}
+                  </small>
+                </span>
+                <strong>{result.totals[entry.id]}</strong>
+              </li>
+            );
+          })}
+        </ul>
+      </section>
+    );
+  }
+
   if (result) {
     const scores = match?.scores ?? result.awards;
     return (
-      <section className='card'>
+      <section className='card results-transition'>
         <div className='phase'>
           <h1>
             {phase === 'complete'
@@ -549,119 +976,116 @@ function Turn({
                 ? 'No answer submitted'
                 : 'Scoring'}
           </h1>
-          {view.deadline && <Timer deadline={view.deadline} offset={offset} />}
+          {view.deadline !== undefined && (
+            <Timer
+              key={`${view.deadline}:${online}`}
+              deadline={view.deadline}
+              duration={view.phaseDuration}
+              offset={offset}
+            />
+          )}
         </div>
         {progress && <p className='tag'>{progress}</p>}
         {phase === 'complete' && finish && <p role='status'>{finish}</p>}
         {phase === 'complete' && result.missed && <p>No answer submitted.</p>}
-        {result.modifier && (
-          <aside>
-            <p className='horizontal-center'>
-              <strong>{result.modifier.name}</strong>
-            </p>
-            <p>{result.modifier.rule}</p>
-          </aside>
-        )}
+        {result.modifier && <ModifierCard modifier={result.modifier} />}
         <h2>Standings</h2>
-        <ul className='rows'>
-          {[...players]
-            .sort((a, b) => scores[b.id] - scores[a.id])
-            .map((player) => (
-              <li
-                key={player.id}
-                className={player.id === you ? 'your-row' : undefined}
-              >
-                <span>{row(player.id)}</span>
-                <span className='score'>
-                  <strong>{scores[player.id]} pts</strong>
-                  {match && (
-                    <small>
-                      {result.awards[player.id] > 0 ? '+' : ''}
-                      {result.awards[player.id]} this turn
-                    </small>
-                  )}
-                </span>
-              </li>
-            ))}
-        </ul>
-        {result.entries.length > 0 && (
-          <>
-            <h2>Final votes</h2>
-            <ul className='rows'>
-              {result.entries.map((entry) => {
-                const voters = Object.entries(result.votes)
-                  .filter(([, id]) => id === entry.id)
-                  .map(([voter]) => name(voter));
-                return (
-                  <li key={entry.id}>
-                    <span>
-                      <strong>{entry.text}</strong>
-                      <small>
-                        {name(entry.authorId)}
-                        {voters.length > 0 &&
-                          ` · Voted for by ${voters.join(', ')}`}
-                      </small>
-                    </span>
-                    <strong>{result.totals[entry.id]}</strong>
-                  </li>
-                );
-              })}
-            </ul>
-          </>
+        <Standings
+          players={players}
+          you={you}
+          scores={scores}
+          awards={result.awards}
+          scoringStartedAt={
+            phase === 'scoring' &&
+            view.deadline !== undefined &&
+            view.phaseDuration !== undefined
+              ? view.deadline - view.phaseDuration
+              : undefined
+          }
+          offset={offset}
+        />
+        {phase === 'complete' && endGame && (
+          <div className='horizontal-center'>
+            <button type='button' disabled={!online} onClick={endGame}>End Game</button>
+          </div>
         )}
-        {phase === 'complete' && <Link to='/'>Back to home</Link>}
       </section>
     );
   }
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!online) return;
+    if (!online || (phase !== 'answering' && phase !== 'response')) return;
     const text = draft.trim();
-    if (phase === 'answering' && text) {
-      if (send({ type: 'answer', phase, text })) setDraft('');
-    } else if (phase === 'response') {
-      if (choice === 'support') {
-        if (send({ type: 'support', phase })) setDraft('');
-      } else if (text && send({ type: 'challenge', phase, text })) {
-        setDraft('');
-      }
+    const submission: Action = phase === 'answering'
+      ? { type: 'answer', phase, text }
+      : choice === 'support'
+        ? { type: 'support', phase }
+        : { type: 'challenge', phase, text };
+    const submittedText = 'text' in submission ? submission.text : '';
+    if ('text' in submission && !submittedText) return;
+    if (accepted?.type === submission.type && acceptedText === submittedText) {
+      setEditingFrom(undefined);
+      return;
     }
+    send(submission);
   }
 
   return (
-    <section className='card'>
+    <section className={phase === 'answering' ? 'card turn-transition' : 'card'}>
       {progress && <p className='tag'>{progress}</p>}
       <div className='phase'>
         <span className='tag'>
-          {phase === 'buffer'
-            ? 'Get ready'
-            : phase === 'response'
-              ? 'Support or challenge'
-              : phase === 'voting'
-                ? 'Final vote'
-                : answering
-                  ? 'Your turn'
-                  : `${name(view.answeringId!)}’s turn`}
+          {phase === 'response'
+            ? 'Support or challenge'
+            : phase === 'voting'
+              ? 'Final vote'
+              : answering
+                ? 'Your turn'
+                : `${name(view.answeringId!)}’s turn`}
         </span>
-        {view.deadline && <Timer deadline={view.deadline} offset={offset} />}
+        {view.deadline !== undefined && (
+          <Timer
+            key={`${view.deadline}:${online}`}
+            deadline={view.deadline}
+            duration={view.phaseDuration}
+            offset={offset}
+          />
+        )}
       </div>
-      <h1>{banner ? `${name(view.answeringId!)}’s turn` : view.prompt}</h1>
-      {view.modifier && (
-        <aside>
-          <small>Private Modifier</small>
-          <strong>{view.modifier.name}</strong>
-          <p>{view.modifier.rule}</p>
-        </aside>
+      <h1 className='horizontal-center'>
+        {quote(view.prompt)}
+      </h1>
+      {view.modifier && <ModifierCard modifier={view.modifier} />}
+      {phase === 'response' && <blockquote>{quote(view.entries[0]?.text)}</blockquote>}
+      {showSubmission && (
+        <div>
+          <div role='status'>
+            {showSubmission.type === 'support' ? (
+              <h2 className='submitted-support'>You Support this answer.</h2>
+            ) : (
+              <h2 className={showSubmission.type === 'challenge' ? 'submitted-challenge' : 'submitted-answer'}>
+                {showSubmission.type === 'challenge' && 'Your Challenge: '}
+                {quote(acceptedText)}
+              </h2>
+            )}
+          </div>
+          <button
+            type='button'
+            className='change-response'
+            onClick={() => {
+              if (showSubmission.type === 'support' || showSubmission.type === 'challenge') {
+                setChoice(showSubmission.type);
+              }
+              setDraft(acceptedText);
+              setEditingFrom(submissionKey);
+            }}
+          >
+            Change your mind?
+          </button>
+        </div>
       )}
-      {phase === 'answering' && !answering && (
-        <p>Waiting for {name(view.answeringId!)} to answer.</p>
-      )}
-      {phase === 'buffer' && (
-        <p>The original answer will appear when the countdown ends.</p>
-      )}
-      {phase === 'response' && <blockquote>{view.entries[0]?.text}</blockquote>}
-      {((phase === 'answering' && answering) ||
+      {!showSubmission && ((phase === 'answering' && answering) ||
         (phase === 'response' && !answering)) && (
         <form onSubmit={submit}>
           {phase === 'response' && (
@@ -714,16 +1138,6 @@ function Turn({
           <button disabled={!online}>
             {phase === 'answering' ? 'Submit answer' : 'Submit response'}
           </button>
-          {view.accepted && (
-            <p role='status'>
-              Last accepted:{' '}
-              {view.accepted.type === 'support'
-                ? 'Support'
-                : 'text' in view.accepted
-                  ? view.accepted.text
-                  : ''}
-            </p>
-          )}
         </form>
       )}
       {phase === 'voting' && (
@@ -733,18 +1147,18 @@ function Turn({
               ? 'Keep your vote or move it to another answer.'
               : 'Supporters are casting their final votes.'}
           </p>
+          {view.voteReturned && <p role='status'>Your vote returned to the original answer. You can move it again.</p>}
           <ul className='rows vote-rows'>
-            {view.entries.map((entry) => (
-              <li key={entry.id}>
+            {view.entries.map((entry, index) => (
+              <li key={entry.id} className={entry.disqualified ? 'disqualified-answer' : undefined}>
                 <span>
-                  <strong>{entry.text}</strong>
-                  <small>
-                    {entry.authorId === view.answeringId
-                      ? 'Original answer'
-                      : name(entry.authorId)}
-                  </small>
+                  <strong>{quote(entry.text)}</strong>
+                  {index === 0 && (
+                    <small className='original-answer-label'> Original answer</small>
+                  )}
+                  {entry.disqualified && <small className='duplicate-label'> Duplicate</small>}
                 </span>
-                {view.vote && (
+                {view.vote && !entry.disqualified && (
                   <button
                     className='outline'
                     disabled={!online || view.vote === entry.id}
@@ -764,6 +1178,7 @@ function Turn({
               </li>
             ))}
           </ul>
+          {view.canFlagDuplicates && <DuplicateFlag entries={view.entries.slice(1)} online={online} send={send} />}
         </>
       )}
     </section>

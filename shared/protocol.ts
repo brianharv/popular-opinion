@@ -36,6 +36,7 @@ export type RoomView = {
   players: Player[]
   hostId: string
   phase: Phase
+  allSeatsConnected?: boolean
   deadline?: number
   serverTime: number
   turnId?: string

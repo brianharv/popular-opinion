@@ -6,6 +6,7 @@ import staticFiles from '@fastify/static'
 import type { WebSocket } from 'ws'
 import { z } from 'zod'
 import { actionSchema, nameSchema } from '../shared/protocol'
+import { maximumPlayers, minimumPlayers } from '../shared/match-options'
 import { action, advance, createTurn, durations, fixtureDraw, view } from './game'
 import { createMatch, nextAnswerer, recordTurn } from './match'
 import { prompts, shuffle } from './prompts'
@@ -26,6 +27,7 @@ type Room = {
 const codeSchema = z.string().regex(/^[A-F0-9]{8}$/)
 const hash = (token: string) => createHash('sha256').update(token).digest('hex')
 const roster = (room: Room) => room.seats.map(({ id, name }) => ({ id, name }))
+const allSeatsConnected = (room: Room) => new Set(room.sockets.values()).size === room.seats.length
 
 export async function createApp(url: string, timing = durations, serveClient = false) {
   const storage = await openStorage(url)
@@ -53,6 +55,7 @@ export async function createApp(url: string, timing = durations, serveClient = f
   function snapshot(room: Room, socket: WebSocket, seat: string) {
     const checkpoint = room.checkpoint
     const snapshot = view(room.code, roster(room), room.hostId, seat, room.turn, Date.now(), checkpoint?.result)
+    if (snapshot.phase === 'lobby') snapshot.allSeatsConnected = allSeatsConnected(room)
     const match = checkpoint?.match
     if (match) {
       snapshot.match = {
@@ -158,7 +161,7 @@ export async function createApp(url: string, timing = durations, serveClient = f
     const body = z.object({ name: nameSchema }).safeParse(request.body)
     if (!body.success) return reply.code(400).send({ error: 'Enter a screen name of 1–24 characters.' })
     return serialize(room, () => {
-      if (room.checkpoint || room.seats.length >= 12) return reply.code(409).send({ error: 'This room is closed to new players.' })
+      if (room.checkpoint || room.seats.length >= maximumPlayers) return reply.code(409).send({ error: 'This room is closed to new players.' })
       if (room.seats.some(seat => seat.name.toLowerCase() === body.data.name.toLowerCase())) {
         return reply.code(409).send({ error: 'Choose a different screen name.' })
       }
@@ -173,7 +176,12 @@ export async function createApp(url: string, timing = durations, serveClient = f
       return
     }
     let connected: { room: Room; seat: string } | undefined
-    socket.on('close', () => connected?.room.sockets.delete(socket))
+    socket.on('close', () => {
+      if (!connected) return
+      const { room } = connected
+      room.sockets.delete(socket)
+      if (!room.checkpoint) broadcast(room)
+    })
     socket.on('message', raw => {
       try {
         const input: unknown = JSON.parse(raw.toString())
@@ -188,7 +196,8 @@ export async function createApp(url: string, timing = durations, serveClient = f
           }
           connected = { room, seat: seat.id }
           room.sockets.set(socket, seat.id)
-          snapshot(room, socket, seat.id)
+          if (room.checkpoint) snapshot(room, socket, seat.id)
+          else broadcast(room)
           return
         }
         const { room, seat } = connected
@@ -196,8 +205,7 @@ export async function createApp(url: string, timing = durations, serveClient = f
         void serialize(room, async () => {
           if (submitted.type === 'start') {
             if (seat !== room.hostId || room.checkpoint) throw new Error('Only the host can start a waiting room.')
-            const eligible = new Set(room.sockets.values())
-            if (room.seats.length < 4 || room.seats.some(player => !eligible.has(player.id))) {
+            if (room.seats.length < minimumPlayers || !allSeatsConnected(room)) {
               throw new Error('At least four players must join and all seats must be connected to start.')
             }
             const order = shuffle(room.seats.map(player => player.id), randomInt)

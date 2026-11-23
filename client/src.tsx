@@ -1,4 +1,11 @@
-import { useEffect, useRef, useState, type FormEvent } from 'react';
+import {
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type CSSProperties,
+  type FormEvent
+} from 'react';
 import {
   BrowserRouter,
   Link,
@@ -7,7 +14,12 @@ import {
   useNavigate,
   useParams
 } from 'react-router';
-import { pointOptions, roundOptions } from '../shared/match-options';
+import {
+  maximumPlayers,
+  minimumPlayers,
+  pointOptions,
+  roundOptions
+} from '../shared/match-options';
 import type {
   Action,
   Credential,
@@ -67,39 +79,43 @@ function Home() {
       <section className='hero'>
         <span className='tag'>A party game for 4–12 players</span>
         <h1>
-          Public
-          <br />
-          Opinion<span>.</span>
+          Public Opinion<span>.</span>
         </h1>
         <p>Give your best answer. See who agrees.</p>
       </section>
       <section>
-        <div className='desktop-shortcuts'>
+        <div className='home-actions'>
           <button
-            className='desktop-shortcut'
+            className='home-action'
             aria-pressed={mode === 'create'}
             onClick={() => {
               setMode('create');
               setError('');
             }}
           >
-            <span className='shortcut-icon shortcut-create' aria-hidden='true'>+</span>
-            <span className='shortcut-label'>Create Game</span>
+            <span className='action-icon action-create' aria-hidden='true'>
+              <span className='action-plus'>+</span>
+            </span>
+            <span className='action-label'>Create Game</span>
           </button>
           <button
-            className='desktop-shortcut'
+            className='home-action'
             aria-pressed={mode === 'join'}
             onClick={() => {
               setMode('join');
               setError('');
             }}
           >
-            <span className='shortcut-icon shortcut-join' aria-hidden='true'>→</span>
-            <span className='shortcut-label'>Join Game</span>
+            <span className='action-icon action-join' aria-hidden='true'>
+              →
+            </span>
+            <span className='action-label'>Join Game</span>
           </button>
-          <Link className='desktop-shortcut' to='/how-to-play'>
-            <span className='shortcut-icon shortcut-help' aria-hidden='true'>?</span>
-            <span className='shortcut-label'>How to Play</span>
+          <Link className='home-action' to='/how-to-play'>
+            <span className='action-icon action-help' aria-hidden='true'>
+              ?
+            </span>
+            <span className='action-label'>How to Play</span>
           </Link>
         </div>
         {mode && (
@@ -129,7 +145,11 @@ function Home() {
             </button>
           </form>
         )}
-        {error && <p className='card' role='alert'>{error}</p>}
+        {error && (
+          <p className='card' role='alert'>
+            {error}
+          </p>
+        )}
       </section>
     </>
   );
@@ -140,7 +160,10 @@ function HowToPlay() {
     <section className='card'>
       <h1>How to Play</h1>
       <ul>
-        <li>Gather 4–12 players and share your room code.</li>
+        <li>
+          Gather 4–12 players, choose "Create Game", and share your room code
+          with your friends.
+        </li>
         <li>
           Each turn, one player tries to score as many points as possible by
           answering a <strong>prompt</strong> using their secret{' '}
@@ -162,8 +185,8 @@ function HowToPlay() {
       <ul>
         <li>
           Each <strong>modifier</strong> affects the scoring of each turn
-          differently. Sometimes you're rewarded for getting most Supporters,
-          other times you're rewarded for being divisive.
+          differently. Sometimes you're rewarded for getting the most
+          supporters, other times you're rewarded for being divisive.
         </li>
         <li>
           <strong>Challengers</strong> gain 2 points for each supporting vote
@@ -175,12 +198,67 @@ function HowToPlay() {
           ends and no one scores any points.
         </li>
       </ul>
-      <h3 className='horizontal-center'>
-        Whatever the modifier for that turn says goes. The modifier can change
-        any rule.
+      <h3 className='horizontal-center heavier-text'>
+        The modifier can change any rule for the current turn. What it says
+        goes, so pay attention.
       </h3>
       <Link to='/'>Back to home</Link>
     </section>
+  );
+}
+
+function RoomCode({ code }: { code: string }) {
+  const [copyStatus, setCopyStatus] = useState<'idle' | 'copied' | 'failed'>(
+    'idle'
+  );
+
+  async function copy() {
+    setCopyStatus('idle');
+    try {
+      await navigator.clipboard.writeText(code);
+      setCopyStatus('copied');
+    } catch {
+      setCopyStatus('failed');
+    }
+  }
+
+  return (
+    <div className='room-code' data-copy-status={copyStatus}>
+      <span>
+        Room code <strong>{code}</strong>
+      </span>
+      <button
+        type='button'
+        className='outline copy-code'
+        aria-label='Copy room code'
+        onClick={copy}
+      >
+        <svg
+          aria-hidden='true'
+          width='22'
+          height='22'
+          viewBox='0 0 24 24'
+          fill='none'
+          stroke='currentColor'
+          strokeWidth='1.75'
+          strokeLinejoin='round'
+        >
+          {copyStatus === 'copied' ? (
+            <path d='m5 12 4 4L19 6' strokeLinecap='round' />
+          ) : (
+            <>
+              <path d='M8 5H6a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2' />
+              <rect x='8' y='2' width='8' height='5' rx='1' />
+            </>
+          )}
+        </svg>
+      </button>
+      <small role='status'>
+        {copyStatus === 'copied' && 'Room code copied.'}
+        {copyStatus === 'failed' &&
+          'Could not copy. Select the room code to copy it manually.'}
+      </small>
+    </div>
   );
 }
 
@@ -233,7 +311,11 @@ function Room() {
 
   function send(action: Action) {
     if (socket.current?.readyState !== WebSocket.OPEN) return false;
-    socket.current.send(JSON.stringify(action.type === 'start' ? action : { ...action, turnId: view?.turnId }));
+    socket.current.send(
+      JSON.stringify(
+        action.type === 'start' ? action : { ...action, turnId: view?.turnId }
+      )
+    );
     return true;
   }
 
@@ -241,9 +323,7 @@ function Room() {
     <>
       <header className='top'>
         <Link to='/'>Public Opinion</Link>
-        <span>
-          Room code <strong>{code}</strong>
-        </span>
+        <RoomCode key={code} code={code} />
       </header>
       {error && (
         <p role='alert' className='card'>
@@ -278,21 +358,23 @@ function Timer({ deadline, offset }: { deadline: number; offset: number }) {
 }
 
 function MatchSetup({
-  disabled,
+  startHint,
   start
 }: {
-  disabled: boolean;
+  startHint: string;
   start: (format: MatchFormat) => void;
 }) {
+  const hintId = useId();
   const [format, setFormat] = useState<MatchFormat>({
     type: 'rounds',
     rounds: 5
   });
   return (
     <form
+      className='match-setup'
       onSubmit={(event) => {
         event.preventDefault();
-        start(format);
+        if (!startHint) start(format);
       }}
     >
       <label>
@@ -346,7 +428,16 @@ function MatchSetup({
           </select>
         </label>
       )}
-      <button disabled={disabled}>Start game</button>
+      <button
+        className='start-game'
+        disabled={Boolean(startHint)}
+        aria-describedby={startHint ? hintId : undefined}
+      >
+        Start game
+      </button>
+      <small id={hintId} className='start-hint' role='status'>
+        {startHint}
+      </small>
     </form>
   );
 }
@@ -404,24 +495,47 @@ function Turn({
           ? `Tiebreaker required for ${contenders}. Tiebreaker play is unavailable in this build.`
           : undefined;
 
-  if (phase === 'lobby')
+  if (phase === 'lobby') {
+    const playersNeeded = Math.max(0, minimumPlayers - players.length);
+    const startHint = !online
+      ? 'Reconnect to the room to start the game.'
+      : playersNeeded > 0
+        ? 'The game can start once enough players have joined.'
+        : view.allSeatsConnected === false
+          ? 'Waiting for all players to connect before starting.'
+          : '';
     return (
-      <section className='card'>
+      <section className='card waiting-room'>
         <h1>Waiting room</h1>
-        <p>Share the room code. You need at least four players.</p>
-        <ul className='rows'>
+        <div className='waiting-room-details'>
+          <p>Copy and share the room code to add more players.</p>
+          <p role='status'>
+            Players needed: <strong>{playersNeeded}</strong>
+          </p>
+        </div>
+        <ul
+          className='rows lobby-roster'
+          aria-label='Players'
+          style={{ '--roster-size': maximumPlayers } as CSSProperties}
+        >
           {players.map((player) => (
-            <li key={player.id}>{row(player.id)}</li>
+            <li key={player.id}>
+              <span className='lobby-player-name' title={player.name}>
+                {player.name}
+              </span>
+              {player.id === you && <span className='you'>You</span>}
+            </li>
           ))}
         </ul>
         {view.hostId === you && (
           <MatchSetup
-            disabled={!online || players.length < 4}
+            startHint={startHint}
             start={(format) => send({ type: 'start', phase, format })}
           />
         )}
       </section>
     );
+  }
 
   if (result) {
     const scores = match?.scores ?? result.awards;
@@ -551,12 +665,18 @@ function Turn({
         (phase === 'response' && !answering)) && (
         <form onSubmit={submit}>
           {phase === 'response' && (
-            <fieldset onKeyDown={event => {
-              if (event.key === 'Enter' && !event.nativeEvent.isComposing && event.target instanceof HTMLInputElement) {
-                event.preventDefault();
-                event.target.form?.requestSubmit();
-              }
-            }}>
+            <fieldset
+              onKeyDown={(event) => {
+                if (
+                  event.key === 'Enter' &&
+                  !event.nativeEvent.isComposing &&
+                  event.target instanceof HTMLInputElement
+                ) {
+                  event.preventDefault();
+                  event.target.form?.requestSubmit();
+                }
+              }}
+            >
               <legend>Your response</legend>
               <label>
                 <input
@@ -634,7 +754,11 @@ function Turn({
                       send({ type: 'vote', phase, answerId: entry.id })
                     }
                   >
-                    {view.vote === entry.id ? <span aria-hidden='true'>✓</span> : 'Vote'}
+                    {view.vote === entry.id ? (
+                      <span aria-hidden='true'>✓</span>
+                    ) : (
+                      'Vote'
+                    )}
                   </button>
                 )}
               </li>

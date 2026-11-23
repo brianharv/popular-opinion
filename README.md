@@ -1,6 +1,6 @@
-# Public Opinion
+# Popular Opinion
 
-Public Opinion is a private-room browser party game for 4–12 players. See [AGENTS.md](./AGENTS.md) for implementation requirements and the [Game Bible](./docs/Game_Bible.md) for the rules and card catalog.
+Popular Opinion is a private-room browser party game for 4–12 players. See [AGENTS.md](./AGENTS.md) for implementation requirements and the [Game Bible](./docs/Game_Bible.md) for the rules and card catalog.
 
 ## Start locally
 

@@ -4,7 +4,7 @@ import { localDatabase } from './storage'
 import type { Credential, RoomView } from '../shared/protocol'
 
 const url = process.env.TEST_DATABASE_URL ?? localDatabase
-const timing = { answering: 1800, buffer: 100, response: 500, voting: 500, scoring: 10_000 }
+const timing = { 'modifier-preview': 150, 'prompt-preview': 150, answering: 1800, response: 500, voting: 500, 'duplicate-review': 1000, 'duplicate-result': 400, 'final-votes': 10_000, scoring: 10_000 }
 
 test('a real PostgreSQL checkpoint replays an interrupted turn and preserves committed points once', async () => {
   let app = await createApp(url, timing)
@@ -52,7 +52,8 @@ test('a real PostgreSQL checkpoint replays an interrupted turn and preserves com
 
     const replay = await Promise.all(credentials.map(connect))
     const answerer = replay.find(peer => peer.show().you === answeringId)!
-    expect(answerer.show()).toMatchObject({ phase: 'answering', answeringId })
+    await expect.poll(() => answerer.show().phase).toBe('answering')
+    expect(answerer.show().answeringId).toBe(answeringId)
     expect(answerer.show().accepted).toBeUndefined()
     expect(answerer.show().prompt).not.toBe(interruptedPrompt)
     const replayPrompt = answerer.show().prompt
@@ -66,11 +67,12 @@ test('a real PostgreSQL checkpoint replays an interrupted turn and preserves com
     for (const peer of replay.filter(peer => peer !== answerer)) {
       peer.send({ type: 'challenge', phase: 'response', text: 'Rome', turnId: replayId })
     }
-    await expect.poll(() => answerer.show().phase).toBe('scoring')
+    await expect.poll(() => answerer.show().phase).toBe('final-votes')
     const result = answerer.show().result!
     expect(result.awards[answeringId!]).toBe(33)
     await restart()
     const restored = await connect(host)
+    await expect.poll(() => restored.show().phase).toBe('answering')
     expect(restored.show()).toMatchObject({
       phase: 'answering',
       match: { format: { type: 'rounds', rounds: 7 }, turnNumber: 2, scores: result.awards },
@@ -78,6 +80,29 @@ test('a real PostgreSQL checkpoint replays an interrupted turn and preserves com
     expect(restored.show().answeringId).not.toBe(answeringId)
     expect([interruptedPrompt, replayPrompt]).not.toContain(restored.show().prompt)
     expect(restored.show().result).toBeUndefined()
+
+    const guest = await connect(credentials[1])
+    guest.send({ type: 'end-game', confirmed: true })
+    await expect.poll(guest.error).toBe('Only the host can end a game in progress.')
+    restored.send({ type: 'end-game', confirmed: false })
+    await expect.poll(restored.error).toBe('Enter a valid action or reconnect with your saved seat.')
+
+    const ended = new Promise(resolve => {
+      sockets[0].addEventListener('message', ({ data }) => {
+        if (JSON.parse(data).ended) resolve(true)
+      })
+    })
+    restored.send({ type: 'end-game', confirmed: true })
+    expect(await ended).toBe(true)
+    await restart()
+
+    const reconnect = new WebSocket(address.replace('http:', 'ws:') + '/ws')
+    sockets.push(reconnect)
+    const reply = new Promise(resolve => {
+      reconnect.addEventListener('message', ({ data }) => resolve(JSON.parse(data)), { once: true })
+    })
+    reconnect.addEventListener('open', () => reconnect.send(JSON.stringify(host)), { once: true })
+    expect(await reply).toEqual({ ended: true })
   } finally {
     for (const socket of sockets) socket.close()
     await app.close()

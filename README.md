@@ -17,6 +17,12 @@ Open **http://127.0.0.1:3180**. Create a game in one browser profile and join fr
 
 Fastify serves the built Vite client, room API, and WebSocket endpoint on the same origin. Run `pnpm build` again after client changes. Compose exposes PostgreSQL on the host loopback at port 54329. The default database URL is for this local container. Set `DATABASE_URL` to use a different database.
 
+## Develop with hot reload
+
+After installing dependencies and starting PostgreSQL, run `pnpm dev` from the repository root. Open **http://127.0.0.1:5173**. Vite applies React and CSS edits in the browser and proxies room API and WebSocket traffic to Fastify. Server and shared-code edits trigger a Fastify restart, so active rooms follow the normal checkpoint recovery rules.
+
+The dev backend listens on loopback port 3181. Set `PORT` on `pnpm dev` to choose a different backend port.
+
 ## LAN playtest
 
 After starting PostgreSQL and building the app, start the server with:

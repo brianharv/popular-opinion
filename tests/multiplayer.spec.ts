@@ -18,13 +18,30 @@ test('four seats reconnect, keep the Modifier private, and share committed scori
     await host.getByRole('button', { name: 'Create room' }).click()
     await expect(host).toHaveURL(/\/room\/[A-F0-9]{8}$/)
     const code = host.url().split('/').at(-1)!
-    await Promise.all(pages.slice(1).map(async (page, index) => {
+    const start = host.getByRole('button', { name: 'Start game' })
+    const lobby = host.locator('.waiting-room')
+    await expect(start).toBeDisabled()
+    await expect(start).toHaveAccessibleDescription('The game can start once enough players have joined.')
+    await expect(host.getByText('Players needed: 3')).toBeVisible()
+    const initialLobbyHeight = await lobby.evaluate(card => card.getBoundingClientRect().height)
+    await contexts[0].grantPermissions(['clipboard-read', 'clipboard-write'])
+    const copyCode = host.getByRole('button', { name: 'Copy room code' })
+    await expect(copyCode.locator('svg rect')).toHaveCount(1)
+    await copyCode.click()
+    await expect(copyCode).toHaveCSS('background-color', 'rgb(28, 79, 134)')
+    await expect(copyCode.locator('svg rect')).toHaveCount(0)
+    await expect(copyCode.locator('svg path')).toHaveAttribute('d', 'm5 12 4 4L19 6')
+    expect(await host.evaluate(() => navigator.clipboard.readText())).toBe(code)
+    for (const [index, page] of pages.slice(1).entries()) {
       await page.getByRole('button', { name: 'Join Game' }).click()
       await page.getByLabel('Room code').fill(code)
       await page.getByLabel('Screen name').fill(`Player ${index + 2}`)
       await page.getByRole('button', { name: 'Join room' }).click()
       await expect(page.getByRole('heading', { name: 'Waiting room' })).toBeVisible()
-    }))
+      await expect(host.getByText(`Players needed: ${2 - index}`)).toBeVisible()
+    }
+    await expect(start).toBeEnabled()
+    expect(await lobby.evaluate(card => card.getBoundingClientRect().height)).toBe(initialLobbyHeight)
     await host.getByLabel('Game type').selectOption('points')
     await host.getByLabel('Point target').selectOption('100')
     await host.getByRole('button', { name: 'Start game' }).click()
@@ -106,4 +123,26 @@ test('four seats reconnect, keep the Modifier private, and share committed scori
   } finally {
     await Promise.all(contexts.map(context => context.close()))
   }
+})
+
+test('the waiting room reserves space for all twelve seats', async ({ page, request }) => {
+  await page.setViewportSize({ width: 320, height: 640 })
+  await page.goto('/')
+  await page.getByRole('button', { name: 'Create Game' }).click()
+  await page.getByLabel('Screen name').fill('Host')
+  await page.getByRole('button', { name: 'Create room' }).click()
+  const lobby = page.locator('.waiting-room')
+  const roster = page.getByRole('list', { name: 'Players' })
+  const seats = roster.getByRole('listitem')
+  await expect(seats).toHaveCount(1)
+  const code = page.url().split('/').at(-1)
+  const initialHeight = await lobby.evaluate(card => card.getBoundingClientRect().height)
+  const join = (name: string) => request.post(`/api/rooms/${code}/join`, { data: { name } })
+  for (let seat = 2; seat <= 12; seat += 1) {
+    expect((await join(`Player ${seat}`)).ok()).toBe(true)
+    await expect(seats).toHaveCount(seat)
+    expect(await lobby.evaluate(card => card.getBoundingClientRect().height)).toBe(initialHeight)
+  }
+  expect((await join('Player 13')).status()).toBe(409)
+  await expect(seats.last()).toBeInViewport({ ratio: 1 })
 })

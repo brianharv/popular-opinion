@@ -7,9 +7,11 @@ import {
   useNavigate,
   useParams
 } from 'react-router';
+import { pointOptions, roundOptions } from '../shared/match-options';
 import type {
   Action,
   Credential,
+  MatchFormat,
   RoomView,
   ServerMessage
 } from '../shared/protocol';
@@ -224,8 +226,9 @@ function Room() {
   }, [code]);
 
   function send(action: Action) {
-    if (socket.current?.readyState === WebSocket.OPEN)
-      socket.current.send(JSON.stringify(action));
+    if (socket.current?.readyState !== WebSocket.OPEN) return false;
+    socket.current.send(JSON.stringify(action.type === 'start' ? action : { ...action, turnId: view?.turnId }));
+    return true;
   }
 
   return (
@@ -244,7 +247,7 @@ function Room() {
       {!online && !error && <p role='status'>Connecting to room…</p>}
       {view && (
         <Turn
-          key={view.phase}
+          key={`${view.turnId ?? 'room'}:${view.phase}`}
           view={view}
           send={send}
           online={online}
@@ -268,6 +271,80 @@ function Timer({ deadline, offset }: { deadline: number; offset: number }) {
   );
 }
 
+function MatchSetup({
+  disabled,
+  start
+}: {
+  disabled: boolean;
+  start: (format: MatchFormat) => void;
+}) {
+  const [format, setFormat] = useState<MatchFormat>({
+    type: 'rounds',
+    rounds: 5
+  });
+  return (
+    <form
+      onSubmit={(event) => {
+        event.preventDefault();
+        start(format);
+      }}
+    >
+      <label>
+        Game type
+        <select
+          value={format.type}
+          onChange={(event) =>
+            setFormat(
+              event.target.value === 'rounds'
+                ? { type: 'rounds', rounds: 5 }
+                : { type: 'points', target: 50 }
+            )
+          }
+        >
+          <option value='rounds'>Rounds</option>
+          <option value='points'>Point total</option>
+        </select>
+      </label>
+      {format.type === 'rounds' ? (
+        <label>
+          Rounds per player
+          <select
+            value={format.rounds}
+            onChange={(event) => {
+              const rounds = roundOptions.find(
+                (option) => String(option) === event.target.value
+              );
+              if (rounds) setFormat({ type: 'rounds', rounds });
+            }}
+          >
+            {roundOptions.map((rounds) => (
+              <option key={rounds}>{rounds}</option>
+            ))}
+          </select>
+        </label>
+      ) : (
+        <label>
+          Point target
+          <select
+            value={format.target}
+            onChange={(event) => {
+              const target = pointOptions.find(
+                (option) => String(option) === event.target.value
+              );
+              if (target) setFormat({ type: 'points', target });
+            }}
+          >
+            {pointOptions.map((points) => (
+              <option key={points}>{points}</option>
+            ))}
+          </select>
+        </label>
+      )}
+      <button disabled={disabled}>Start game</button>
+    </form>
+  );
+}
+
 function Turn({
   view,
   send,
@@ -275,14 +352,12 @@ function Turn({
   offset
 }: {
   view: RoomView;
-  send: (action: Action) => void;
+  send: (action: Action) => boolean;
   online: boolean;
   offset: number;
 }) {
-  const { players, phase, you, result } = view;
-  const [draft, setDraft] = useState(
-    view.accepted && 'text' in view.accepted ? view.accepted.text : ''
-  );
+  const { players, phase, you, result, match } = view;
+  const [draft, setDraft] = useState('');
   const [choice, setChoice] = useState(
     view.accepted?.type === 'challenge' ? 'challenge' : 'support'
   );
@@ -305,6 +380,24 @@ function Turn({
     </>
   );
 
+  const format = match?.format;
+  const progress =
+    match &&
+    format &&
+    (format.type === 'rounds'
+      ? `Round ${Math.ceil(match.turnNumber / players.length)} of ${format.rounds} · Turn ${match.turnNumber}`
+      : `First to ${format.target} points · Turn ${match.turnNumber}`);
+  const outcome = match?.outcome;
+  const contenders = outcome?.playerIds.map(name).join(', ');
+  const finish =
+    outcome?.type === 'winner'
+      ? `${contenders} wins!`
+      : outcome?.type === 'shared-tie'
+        ? `Shared tie among ${contenders}.`
+        : outcome?.type === 'tiebreaker'
+          ? `Tiebreaker required for ${contenders}. Tiebreaker play is unavailable in this build.`
+          : undefined;
+
   if (phase === 'lobby')
     return (
       <section className='card'>
@@ -316,17 +409,16 @@ function Turn({
           ))}
         </ul>
         {view.hostId === you && (
-          <button
+          <MatchSetup
             disabled={!online || players.length < 4}
-            onClick={() => send({ type: 'start', phase })}
-          >
-            Start turn
-          </button>
+            start={(format) => send({ type: 'start', phase, format })}
+          />
         )}
       </section>
     );
 
-  if (result)
+  if (result) {
+    const scores = match?.scores ?? result.awards;
     return (
       <section className='card'>
         <div className='phase'>
@@ -339,24 +431,36 @@ function Turn({
           </h1>
           {view.deadline && <Timer deadline={view.deadline} offset={offset} />}
         </div>
+        {progress && <p className='tag'>{progress}</p>}
+        {phase === 'complete' && finish && <p role='status'>{finish}</p>}
         {phase === 'complete' && result.missed && <p>No answer submitted.</p>}
         {result.modifier && (
           <aside>
-            <strong>{result.modifier.name}</strong>
+            <p className='horizontal-center'>
+              <strong>{result.modifier.name}</strong>
+            </p>
             <p>{result.modifier.rule}</p>
           </aside>
         )}
         <h2>Standings</h2>
         <ul className='rows'>
           {[...players]
-            .sort((a, b) => result.awards[b.id] - result.awards[a.id])
+            .sort((a, b) => scores[b.id] - scores[a.id])
             .map((player) => (
               <li
                 key={player.id}
                 className={player.id === you ? 'your-row' : undefined}
               >
                 <span>{row(player.id)}</span>
-                <strong>{result.awards[player.id]} pts</strong>
+                <span className='score'>
+                  <strong>{scores[player.id]} pts</strong>
+                  {match && (
+                    <small>
+                      {result.awards[player.id] > 0 ? '+' : ''}
+                      {result.awards[player.id]} this turn
+                    </small>
+                  )}
+                </span>
               </li>
             ))}
         </ul>
@@ -388,20 +492,26 @@ function Turn({
         {phase === 'complete' && <Link to='/'>Back to home</Link>}
       </section>
     );
+  }
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (phase === 'answering') send({ type: 'answer', phase, text: draft });
-    if (phase === 'response')
-      send(
-        choice === 'challenge'
-          ? { type: 'challenge', phase, text: draft }
-          : { type: 'support', phase }
-      );
+    if (!online) return;
+    const text = draft.trim();
+    if (phase === 'answering' && text) {
+      if (send({ type: 'answer', phase, text })) setDraft('');
+    } else if (phase === 'response') {
+      if (choice === 'support') {
+        if (send({ type: 'support', phase })) setDraft('');
+      } else if (text && send({ type: 'challenge', phase, text })) {
+        setDraft('');
+      }
+    }
   }
 
   return (
     <section className='card'>
+      {progress && <p className='tag'>{progress}</p>}
       <div className='phase'>
         <span className='tag'>
           {phase === 'buffer'
@@ -435,11 +545,17 @@ function Turn({
         (phase === 'response' && !answering)) && (
         <form onSubmit={submit}>
           {phase === 'response' && (
-            <fieldset>
+            <fieldset onKeyDown={event => {
+              if (event.key === 'Enter' && !event.nativeEvent.isComposing && event.target instanceof HTMLInputElement) {
+                event.preventDefault();
+                event.target.form?.requestSubmit();
+              }
+            }}>
               <legend>Your response</legend>
               <label>
                 <input
                   type='radio'
+                  name='response'
                   checked={choice === 'support'}
                   onChange={() => setChoice('support')}
                 />{' '}
@@ -448,6 +564,7 @@ function Turn({
               <label>
                 <input
                   type='radio'
+                  name='response'
                   checked={choice === 'challenge'}
                   onChange={() => setChoice('challenge')}
                 />{' '}
@@ -458,7 +575,9 @@ function Turn({
           {(phase === 'answering' || choice === 'challenge') && (
             <label>
               {phase === 'answering' ? 'Your answer' : 'Challenge answer'}
-              <textarea
+              <input
+                type='text'
+                enterKeyHint='send'
                 required
                 maxLength={160}
                 value={draft}
@@ -488,7 +607,7 @@ function Turn({
               ? 'Keep your vote or move it to another answer.'
               : 'Supporters are casting their final votes.'}
           </p>
-          <ul className='rows'>
+          <ul className='rows vote-rows'>
             {view.entries.map((entry) => (
               <li key={entry.id}>
                 <span>
@@ -504,11 +623,12 @@ function Turn({
                     className='outline'
                     disabled={!online || view.vote === entry.id}
                     aria-label={`Vote for ${entry.text}`}
+                    aria-pressed={view.vote === entry.id}
                     onClick={() =>
                       send({ type: 'vote', phase, answerId: entry.id })
                     }
                   >
-                    {view.vote === entry.id ? 'Your vote' : 'Vote'}
+                    {view.vote === entry.id ? <span aria-hidden='true'>✓</span> : 'Vote'}
                   </button>
                 )}
               </li>

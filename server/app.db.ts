@@ -4,7 +4,7 @@ import { localDatabase } from './storage'
 import type { Credential, RoomView } from '../shared/protocol'
 
 const url = process.env.TEST_DATABASE_URL ?? localDatabase
-const timing = { answering: 900, buffer: 100, response: 500, voting: 500, scoring: 10_000 }
+const timing = { answering: 1800, buffer: 100, response: 500, voting: 500, scoring: 10_000 }
 
 test('a real PostgreSQL checkpoint replays an interrupted turn and preserves committed points once', async () => {
   let app = await createApp(url, timing)
@@ -21,10 +21,15 @@ test('a real PostgreSQL checkpoint replays an interrupted turn and preserves com
       const socket = new WebSocket(address.replace('http:', 'ws:') + '/ws')
       sockets.push(socket)
       let current: RoomView | undefined
-      socket.addEventListener('message', ({ data }) => { current = JSON.parse(data).view ?? current })
+      let error: string | undefined
+      socket.addEventListener('message', ({ data }) => {
+        const message = JSON.parse(data)
+        current = message.view ?? current
+        error = message.error
+      })
       socket.addEventListener('open', () => socket.send(JSON.stringify(credential)), { once: true })
       await expect.poll(() => current?.code).toBe(host.code)
-      return { show: () => current!, send: (input: unknown) => socket.send(JSON.stringify(input)) }
+      return { show: () => current!, error: () => error, send: (input: unknown) => socket.send(JSON.stringify(input)) }
     }
 
     async function restart() {
@@ -35,11 +40,13 @@ test('a real PostgreSQL checkpoint replays an interrupted turn and preserves com
     }
 
     const peers = await Promise.all(credentials.map(connect))
-    peers[0].send({ type: 'start', phase: 'lobby' })
+    peers[0].send({ type: 'start', phase: 'lobby', format: { type: 'rounds', rounds: 7 } })
     await expect.poll(() => peers[0].show().phase).toBe('answering')
     const answeringId = peers[0].show().answeringId
     const priorAnswerer = peers.find(peer => peer.show().you === answeringId)!
-    priorAnswerer.send({ type: 'answer', phase: 'answering', text: 'Interrupted' })
+    const interruptedPrompt = priorAnswerer.show().prompt
+    const interruptedId = priorAnswerer.show().turnId
+    priorAnswerer.send({ type: 'answer', phase: 'answering', text: 'Interrupted', turnId: interruptedId })
     await expect.poll(() => priorAnswerer.show().accepted).toMatchObject({ text: 'Interrupted' })
     await restart()
 
@@ -47,18 +54,30 @@ test('a real PostgreSQL checkpoint replays an interrupted turn and preserves com
     const answerer = replay.find(peer => peer.show().you === answeringId)!
     expect(answerer.show()).toMatchObject({ phase: 'answering', answeringId })
     expect(answerer.show().accepted).toBeUndefined()
-    answerer.send({ type: 'answer', phase: 'answering', text: 'Paris' })
-    await expect.poll(() => answerer.show().phase, { timeout: 2000 }).toBe('response')
+    expect(answerer.show().prompt).not.toBe(interruptedPrompt)
+    const replayPrompt = answerer.show().prompt
+    const replayId = answerer.show().turnId
+    expect(replayId).not.toBe(interruptedId)
+    answerer.send({ type: 'answer', phase: 'answering', text: 'Stale', turnId: interruptedId })
+    await expect.poll(answerer.error).toBe('That action is no longer available.')
+    expect(answerer.show().accepted).toBeUndefined()
+    answerer.send({ type: 'answer', phase: 'answering', text: 'Paris', turnId: replayId })
+    await expect.poll(() => answerer.show().phase, { timeout: 3000 }).toBe('response')
     for (const peer of replay.filter(peer => peer !== answerer)) {
-      peer.send({ type: 'challenge', phase: 'response', text: 'Rome' })
+      peer.send({ type: 'challenge', phase: 'response', text: 'Rome', turnId: replayId })
     }
     await expect.poll(() => answerer.show().phase).toBe('scoring')
     const result = answerer.show().result!
     expect(result.awards[answeringId!]).toBe(33)
     await restart()
     const restored = await connect(host)
-    expect(restored.show().phase).toBe('complete')
-    expect(restored.show().result).toEqual(result)
+    expect(restored.show()).toMatchObject({
+      phase: 'answering',
+      match: { format: { type: 'rounds', rounds: 7 }, turnNumber: 2, scores: result.awards },
+    })
+    expect(restored.show().answeringId).not.toBe(answeringId)
+    expect([interruptedPrompt, replayPrompt]).not.toContain(restored.show().prompt)
+    expect(restored.show().result).toBeUndefined()
   } finally {
     for (const socket of sockets) socket.close()
     await app.close()

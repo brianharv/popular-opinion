@@ -13,7 +13,7 @@ pnpm build
 pnpm start
 ```
 
-Open **http://127.0.0.1:3180**. Create a game in one browser profile and join from three other profiles using the displayed room code. Tabs within one profile share the saved seat. The host starts the turn after all four players join. Refresh a player's window during a turn to reclaim the seat and see its last accepted action.
+Open **http://127.0.0.1:3180**. Create a game in one browser profile and join from three other profiles using the displayed room code. Tabs within one profile share the saved seat. After all four players join, the host chooses 5, 7, or 10 rounds, or a target of 50, 100, or 200 points. Each round gives every player one answering turn. Refresh a player's window during a turn to reclaim the seat and see its last accepted action.
 
 Fastify serves the built Vite client, room API, and WebSocket endpoint on the same origin. Run `pnpm build` again after client changes. Compose exposes PostgreSQL on the host loopback at port 54329. The default database URL is for this local container. Set `DATABASE_URL` to use a different database.
 
@@ -53,8 +53,9 @@ If Compose hangs before starting PostgreSQL, check whether Docker Desktop is res
 
 ## Milestone fixtures and assumptions
 
-- The fixed draw is Prompt 001, **Best vacation destination**, and **The Troll**. A server restart before scoring starts a fresh timer and draws the same fixture again. The first Answering Player is chosen randomly from the roster.
-- The match consists of one scheduled turn. The scoring screen lasts ten seconds, then shows final standings. A committed match restores directly to final standings after a restart. Only started matches are checkpointed.
+- The server shuffles the full Game Bible Prompt deck and the answering order at match start. Prompts come from the saved deck without replacement. When the deck runs out, the server reshuffles the full deck. An interrupted turn draws the next Prompt and gets a fresh timer. The local Modifier fixture still uses **The Troll** every turn.
+- Scoring shows the turn awards and cumulative standings for ten seconds, then starts the next turn or shows the final standings. After a restart, a committed result restores directly into the next turn or final standings. Only started matches are checkpointed. Saved one-turn matches retain their original format.
+- When multiple players qualify for a tiebreaker, the game records and displays the contenders. The tiebreaker ballot is deferred. If everyone qualifies, the game declares a shared tie.
 - This lobby uses an eight-character room code and a browser-held seat token. Screen names are 1–24 characters and unique within the lobby. Answers are limited to 160 characters. The host can start with 4–12 occupied seats when every seat is connected. These are local milestone conventions.
 - The warm paper palette, serif headings, and compact cards are provisional. The checked-in specification has no visual direction section.
-- Deck integration, other Modifier rules, match formats, bonus turns, duplicate review, tiebreakers, host transfer, ending and abandonment controls, and Render deployment are deferred.
+- Other Modifier rules, bonus turns, duplicate review, tiebreakers, host transfer, ending and abandonment controls, and Render deployment are deferred.

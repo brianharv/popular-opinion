@@ -7,6 +7,8 @@ import type { WebSocket } from 'ws'
 import { z } from 'zod'
 import { actionSchema, nameSchema } from '../shared/protocol'
 import { action, advance, createTurn, durations, fixtureDraw, view } from './game'
+import { createMatch, nextAnswerer, recordTurn } from './match'
+import { prompts, shuffle } from './prompts'
 import { openStorage, type Checkpoint, type Seat } from './storage'
 
 type Room = {
@@ -15,6 +17,8 @@ type Room = {
   seats: Seat[]
   checkpoint?: Checkpoint
   turn?: ReturnType<typeof createTurn>
+  turnNumber?: number
+  pendingDraw?: { prompt: string; remainingPrompts: string[] }
   queue: Promise<void>
   sockets: Map<WebSocket, string>
   timer?: ReturnType<typeof setTimeout>
@@ -47,38 +51,84 @@ export async function createApp(url: string, timing = durations, serveClient = f
   }
 
   function snapshot(room: Room, socket: WebSocket, seat: string) {
-    send(socket, { view: view(room.code, roster(room), room.hostId, seat, room.turn, Date.now(), room.checkpoint?.result) })
+    const checkpoint = room.checkpoint
+    const snapshot = view(room.code, roster(room), room.hostId, seat, room.turn, Date.now(), checkpoint?.result)
+    const match = checkpoint?.match
+    if (match) {
+      snapshot.match = {
+        format: match.format,
+        turnNumber: room.turnNumber ?? match.completedTurns,
+        scores: match.scores,
+        outcome: match.outcome,
+      }
+    }
+    send(socket, { view: snapshot })
   }
 
   function broadcast(room: Room) {
     for (const [socket, seat] of room.sockets) snapshot(room, socket, seat)
   }
 
+  async function beginTurn(room: Room) {
+    const checkpoint = room.checkpoint!
+    const match = checkpoint.match
+    const answeringId = checkpoint.match ? nextAnswerer(checkpoint.match) : checkpoint.answeringId
+    if (!room.pendingDraw) {
+      const deck = checkpoint.remainingPrompts?.length ? checkpoint.remainingPrompts : shuffle(prompts, randomInt)
+      const [prompt, ...remainingPrompts] = deck
+      room.pendingDraw = { prompt, remainingPrompts }
+    }
+    const { prompt, remainingPrompts } = room.pendingDraw
+    const after = { ...checkpoint, remainingPrompts }
+    await storage.commit(room.code, checkpoint, after)
+    room.checkpoint = after
+    room.pendingDraw = undefined
+    room.turnNumber = match ? match.completedTurns + 1 : undefined
+    room.turn = createTurn(roster(room), answeringId, Date.now, () => fixtureDraw(prompt), randomUUID, timing)
+  }
+
   function schedule(room: Room, retry = false) {
     clearTimeout(room.timer)
-    if (closing || room.turn?.deadline === undefined) return
+    if (closing || (room.turn ? room.turn.deadline === undefined : !room.checkpoint)) return
     room.timer = setTimeout(() => {
       void serialize(room, async () => {
-        const next = advance(room.turn!, Date.now())
-        if (next.phase === 'scoring' && room.turn!.phase !== 'scoring') {
-          await storage.commit(room.code, room.checkpoint!, next.result!)
+        const current = room.turn
+        if (!current) {
+          await beginTurn(room)
+          broadcast(room)
+          schedule(room)
+          return
+        }
+        const next = advance(current, Date.now())
+        if (next.phase === 'scoring' && current.phase !== 'scoring') {
+          const before = room.checkpoint!
+          const result = next.result!
+          const after = before.match
+            ? { ...before, match: recordTurn(before.match, result.awards), result }
+            : { ...before, result }
+          await storage.commit(room.code, before, after)
+          room.checkpoint = after
           next.deadline = Date.now() + timing.scoring
         }
-        room.turn = next
+        if (next.phase === 'complete' && room.checkpoint?.match && !room.checkpoint.match.outcome) {
+          await beginTurn(room)
+        } else {
+          room.turn = next
+        }
         broadcast(room)
         schedule(room)
       }).catch(error => {
         app.log.error(error)
         schedule(room, true)
       })
-    }, retry ? 1000 : Math.max(0, room.turn.deadline - Date.now()))
+    }, retry ? 1000 : Math.max(0, (room.turn?.deadline ?? Date.now()) - Date.now()))
   }
 
   for (const { code, checkpoint } of await storage.load()) {
     const room = makeRoom(code, checkpoint.hostId, checkpoint.seats)
     room.checkpoint = checkpoint
-    if (!checkpoint.result) {
-      room.turn = createTurn(roster(room), checkpoint.answeringId, Date.now, fixtureDraw, randomUUID, timing)
+    if (checkpoint.match ? !checkpoint.match.outcome : !checkpoint.result) {
+      await beginTurn(room)
       schedule(room)
     }
   }
@@ -150,13 +200,22 @@ export async function createApp(url: string, timing = durations, serveClient = f
             if (room.seats.length < 4 || room.seats.some(player => !eligible.has(player.id))) {
               throw new Error('At least four players must join and all seats must be connected to start.')
             }
-            const checkpoint = { hostId: room.hostId, seats: room.seats, answeringId: room.seats[randomInt(room.seats.length)].id }
+            const order = shuffle(room.seats.map(player => player.id), randomInt)
+            const checkpoint = {
+              hostId: room.hostId,
+              seats: room.seats,
+              match: createMatch(submitted.format, order),
+              remainingPrompts: shuffle(prompts, randomInt),
+            }
             await storage.start(room.code, checkpoint)
             room.checkpoint = checkpoint
-            room.turn = createTurn(roster(room), checkpoint.answeringId, Date.now, fixtureDraw, randomUUID, timing)
-            schedule(room)
+            try {
+              await beginTurn(room)
+            } finally {
+              schedule(room)
+            }
           } else {
-            if (!room.turn) throw new Error('The turn has not started.')
+            if (!room.turn || submitted.turnId !== room.turn.id) throw new Error('That action is no longer available.')
             room.turn = action(room.turn, seat, submitted, Date.now())
           }
           broadcast(room)

@@ -1,8 +1,8 @@
 import type { Action, Entry, Modifier, Phase, Player, Result, RoomView } from '../shared/protocol'
 
 export const durations = { answering: 30_000, buffer: 3_000, response: 30_000, voting: 30_000, scoring: 10_000 }
-export const fixtureDraw = () => ({
-  prompt: 'Best vacation destination',
+export const fixtureDraw = (prompt = 'Best vacation destination') => ({
+  prompt,
   modifier: {
     name: 'The Troll',
     rule: 'Earn 2 points per challenger and 5 if you retain zero votes. Lose 5 if nobody challenges. Triple the subtotal if everyone challenges. Challengers earn zero.',
@@ -10,6 +10,7 @@ export const fixtureDraw = () => ({
 })
 
 type Turn = {
+  id: string
   phase: Exclude<Phase, 'lobby'>
   deadline?: number
   players: Player[]
@@ -28,7 +29,7 @@ type Turn = {
 export function createTurn(players: Player[], answeringId: string, clock: () => number,
   draw: () => { prompt: string; modifier: Modifier }, nextId: () => string, timing = durations): Turn {
   return {
-    ...draw(), players, answeringId, phase: 'answering', deadline: clock() + timing.answering,
+    id: nextId(), ...draw(), players, answeringId, phase: 'answering', deadline: clock() + timing.answering,
     challenges: [], responses: {}, votes: {}, durations: timing,
     answerIds: Object.fromEntries(players.map(player => [player.id, nextId()])),
   }
@@ -109,7 +110,7 @@ export function view(code: string, players: Player[], hostId: string, you: strin
   const { phase, deadline, answeringId, prompt, original, challenges, result } = turn
   const answering = answeringId === you
   return {
-    ...base, phase, deadline, answeringId, prompt, result,
+    ...base, phase, deadline, answeringId, prompt, result, turnId: turn.id,
     bannerUntil: !answering && phase === 'answering' && deadline !== undefined
       ? deadline - turn.durations.answering + 1000 : undefined,
     modifier: !result && answering ? turn.modifier : undefined,

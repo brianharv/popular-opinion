@@ -73,31 +73,37 @@ function Home() {
         </h1>
         <p>Give your best answer. See who agrees.</p>
       </section>
-      <section className='card'>
-        <div className='actions'>
+      <section>
+        <div className='desktop-shortcuts'>
           <button
+            className='desktop-shortcut'
             aria-pressed={mode === 'create'}
             onClick={() => {
               setMode('create');
               setError('');
             }}
           >
-            Create Game
+            <span className='shortcut-icon shortcut-create' aria-hidden='true'>+</span>
+            <span className='shortcut-label'>Create Game</span>
           </button>
           <button
-            className='outline'
+            className='desktop-shortcut'
             aria-pressed={mode === 'join'}
             onClick={() => {
               setMode('join');
               setError('');
             }}
           >
-            Join Game
+            <span className='shortcut-icon shortcut-join' aria-hidden='true'>→</span>
+            <span className='shortcut-label'>Join Game</span>
           </button>
-          <Link to='/how-to-play'>How to Play</Link>
+          <Link className='desktop-shortcut' to='/how-to-play'>
+            <span className='shortcut-icon shortcut-help' aria-hidden='true'>?</span>
+            <span className='shortcut-label'>How to Play</span>
+          </Link>
         </div>
         {mode && (
-          <form key={mode} onSubmit={submit}>
+          <form className='card' key={mode} onSubmit={submit}>
             {mode === 'join' && (
               <label>
                 Room code
@@ -123,7 +129,7 @@ function Home() {
             </button>
           </form>
         )}
-        {error && <p role='alert'>{error}</p>}
+        {error && <p className='card' role='alert'>{error}</p>}
       </section>
     </>
   );

@@ -57,5 +57,5 @@ If Compose hangs before starting PostgreSQL, check whether Docker Desktop is res
 - Scoring shows the turn awards and cumulative standings for ten seconds, then starts the next turn or shows the final standings. After a restart, a committed result restores directly into the next turn or final standings. Only started matches are checkpointed. Saved one-turn matches retain their original format.
 - When multiple players qualify for a tiebreaker, the game records and displays the contenders. The tiebreaker ballot is deferred. If everyone qualifies, the game declares a shared tie.
 - This lobby uses an eight-character room code and a browser-held seat token. Screen names are 1–24 characters and unique within the lobby. Answers are limited to 160 characters. The host can start with 4–12 occupied seats when every seat is connected. These are local milestone conventions.
-- The warm paper palette, serif headings, and compact cards are provisional. The checked-in specification has no visual direction section.
+- The interface pairs a desktop-teal backdrop with textured arcade panels.
 - Other Modifier rules, bonus turns, duplicate review, tiebreakers, host transfer, ending and abandonment controls, and Render deployment are deferred.

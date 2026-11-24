@@ -1,7 +1,7 @@
 import type { Entry } from '../shared/protocol';
 
-// Rules follow the Game Bible Modifier catalog.
-export const modifiers = [
+// Rules follow the Game Bible Persona catalog.
+export const personas = [
   {
     name: 'The College Try',
     rule: '2 points per support vote plus 1 point per retained vote. Double this amount if nobody challenged.'
@@ -52,10 +52,10 @@ export const modifiers = [
   }
 ] as const;
 
-type ModifierName = (typeof modifiers)[number]['name'];
+type PersonaName = (typeof personas)[number]['name'];
 
-export function scoreModifier(
-  name: ModifierName,
+export function scorePersona(
+  name: PersonaName,
   answeringId: string,
   playerIds: string[],
   challenges: Entry[],

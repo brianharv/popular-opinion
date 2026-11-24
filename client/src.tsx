@@ -26,11 +26,11 @@ import type {
   Action,
   Credential,
   MatchFormat,
-  Modifier,
+  Persona,
   RoomView,
   ServerMessage
 } from '../shared/protocol';
-import { modifierSubtitles } from './modifier-subtitles';
+import { personaSubtitles } from './persona-subtitles';
 import './style.css';
 
 const seatKey = (code: string) => `popular-opinion:${code}`;
@@ -191,7 +191,7 @@ function HowToPlay() {
         <li>
           Each turn, one player tries to score as many points as possible by
           answering a <strong>prompt</strong> and using their secret{' '}
-          <strong>modifier</strong>.
+          <strong>persona</strong>.
         </li>
         <li>
           Everyone else chooses to <strong>support</strong> the answer or{' '}
@@ -202,13 +202,13 @@ function HowToPlay() {
           or move it to a challenger.
         </li>
         <li>
-          When time expires, everyone sees the votes, modifier, and points.
+          When time expires, everyone sees the votes, persona, and points.
         </li>
       </ul>
       <h2>Scoring</h2>
       <ul>
         <li>
-          Each <strong>modifier</strong> affects the scoring of each turn
+          Each <strong>persona</strong> affects the scoring of each turn
           differently. Sometimes you're rewarded for getting the most
           supporters, other times you're rewarded for being divisive.
         </li>
@@ -224,7 +224,7 @@ function HowToPlay() {
       </ul>
       <hr className='horizontal-center narrow-line'></hr>
       <h3 className='horizontal-center heavier-text'>
-        The modifier changes the rules each turn. What it says goes, so pay
+        The persona changes the rules each turn. What it says goes, so pay
         attention.
       </h3>
       <Link to='/'>Back to home</Link>
@@ -772,14 +772,14 @@ function MatchSetup({
   );
 }
 
-function ModifierCard({ modifier }: { modifier: Modifier }) {
-  const subtitle = modifierSubtitles.get(modifier.name);
+function PersonaCard({ persona }: { persona: Persona }) {
+  const subtitle = personaSubtitles.get(persona.name);
   return (
-    <aside className='modifier-card'>
-      <strong className='modifier-title'>{modifier.name}</strong>
-      {subtitle && <p className='modifier-subtitle'>{subtitle}</p>}
+    <aside className='persona-card'>
+      <strong className='persona-title'>{persona.name}</strong>
+      {subtitle && <p className='persona-subtitle'>{subtitle}</p>}
       <hr className='horizontal-center narrow-line' />
-      <p className='modifier-rule'>{modifier.rule}</p>
+      <p className='persona-rule'>{persona.rule}</p>
     </aside>
   );
 }
@@ -1049,7 +1049,7 @@ function Turn({
       <div className='round-preview'>
         <section className='card turn-transition horizontal-center'>
           <h1>{name(view.answeringId!)}’s turn.</h1>
-          <p>Please wait while they review the prompt and modifier.</p>
+          <p>Please wait while they review the prompt and persona.</p>
         </section>
       </div>
     );
@@ -1057,7 +1057,7 @@ function Turn({
 
   if (
     phase === 'turn-intro' ||
-    phase === 'modifier-preview' ||
+    phase === 'persona-preview' ||
     phase === 'prompt-preview'
   ) {
     return (
@@ -1065,8 +1065,8 @@ function Turn({
         <section className='card turn-transition'>
           {phase === 'turn-intro' ? (
             <h1>It’s your turn, {name(you)}</h1>
-          ) : phase === 'modifier-preview' && view.modifier ? (
-            <ModifierCard modifier={view.modifier} />
+          ) : phase === 'persona-preview' && view.persona ? (
+            <PersonaCard persona={view.persona} />
           ) : (
             <h1 className='horizontal-center'>{quote(view.prompt)}</h1>
           )}
@@ -1196,7 +1196,7 @@ function Turn({
         {phase === 'complete' && result.missed && (
           <p className='horizontal-center'>No answer submitted.</p>
         )}
-        {result.modifier && <ModifierCard modifier={result.modifier} />}
+        {result.persona && <PersonaCard persona={result.persona} />}
         {phase === 'scoring' && result.bonusTurn && !outcome && (
           <p role='status'>{name(view.answeringId!)} earned a bonus turn.</p>
         )}
@@ -1262,7 +1262,7 @@ function Turn({
         </p>
       )}
       <h1 className='horizontal-center'>{quote(view.prompt)}</h1>
-      {view.modifier && <ModifierCard modifier={view.modifier} />}
+      {view.persona && <PersonaCard persona={view.persona} />}
       {phase === 'response' && (
         <blockquote className='horizontal-center'>
           {quote(view.entries[0]?.text)}

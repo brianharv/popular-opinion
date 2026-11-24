@@ -607,7 +607,7 @@ fieldset label {
   min-height: 44px;
 }
 
-.modifier-card,
+.persona-card,
 blockquote,
 .submitted-answer,
 .submitted-challenge,
@@ -619,20 +619,20 @@ blockquote,
   overflow-wrap: anywhere;
 }
 
-.modifier-card {
+.persona-card {
   padding: clamp(0.875rem, 4vw, 1.5rem);
   color: #302039;
   background: #f4edf8;
   border-color: #e1d4eb;
 }
 
-.modifier-title {
+.persona-title {
   display: block;
   font: 700 clamp(1.85rem, 6vw, 2.4rem)/1.08 var(--display);
   text-align: center;
 }
 
-.modifier-subtitle {
+.persona-subtitle {
   margin: 0.5rem 0 0;
   color: #604177;
   font-size: 0.75rem;
@@ -640,7 +640,7 @@ blockquote,
   text-align: center;
 }
 
-.modifier-rule {
+.persona-rule {
   max-inline-size: 52ch;
   margin: 0.875rem auto 0;
   padding-top: 0.75rem;

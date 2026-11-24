@@ -1,14 +1,14 @@
 import { expect, test } from 'vitest'
 import { action, advance, createTurn, view, fixtureDraw } from './game'
-import { modifiers } from './modifiers'
-import type { Action, Modifier } from '../shared/protocol'
+import { personas } from './personas'
+import type { Action, Persona } from '../shared/protocol'
 
-function setup(ids = ['a', 'b', 'c', 'd'], modifier: Modifier = fixtureDraw().modifier) {
+function setup(ids = ['a', 'b', 'c', 'd'], persona: Persona = fixtureDraw().persona) {
   let now = 0
   const clock = () => now
   const players = ids.map(id => ({ id, name: id }))
   let entry = 0
-  let turn = createTurn(players, 'a', clock, () => ({ ...fixtureDraw(), modifier }), () => `entry-${++entry}`)
+  let turn = createTurn(players, 'a', clock, () => ({ ...fixtureDraw(), persona }), () => `entry-${++entry}`)
   return {
     send: (seat: string, input: Action, at = now) => {
       turn = action(turn, seat, input, at)
@@ -18,11 +18,18 @@ function setup(ids = ['a', 'b', 'c', 'd'], modifier: Modifier = fixtureDraw().mo
   }
 }
 
-test.each(modifiers)('shows the catalog text for $name at preview and scoring', modifier => {
-  const game = setup(undefined, modifier)
+test('restores the persona from an older result using the current view shape', () => {
+  const { persona } = fixtureDraw()
+  const saved = { missed: false, awards: { a: 9 }, entries: [], votes: {}, totals: {}, modifier: persona }
+  const restored = view('ROOM', [{ id: 'a', name: 'Alice' }], 'a', 'a', undefined, 0, saved)
+  expect(restored.result).toEqual({ missed: false, awards: { a: 9 }, entries: [], votes: {}, totals: {}, persona })
+})
+
+test.each(personas)('shows the catalog text for $name at preview and scoring', persona => {
+  const game = setup(undefined, persona)
   game.next(3000)
-  expect(game.show('a').modifier).toEqual(modifier)
-  expect(game.show('b').modifier).toBeUndefined()
+  expect(game.show('a').persona).toEqual(persona)
+  expect(game.show('b').persona).toBeUndefined()
   game.next(3000)
   game.next(10_000)
   game.next(5000)
@@ -31,7 +38,7 @@ test.each(modifiers)('shows the catalog text for $name at preview and scoring', 
   game.next(30_000)
   game.next(15_000)
   game.next(5000)
-  expect(game.show('b').result?.modifier).toEqual(modifier)
+  expect(game.show('b').result?.persona).toEqual(persona)
 })
 
 test('duplicate review pauses the vote, preserves anonymity, and returns invalidated votes', () => {
@@ -86,23 +93,23 @@ test('duplicate review pauses the vote, preserves anonymity, and returns invalid
 test('reveals Paris as soon as answering ends and runs a private 15-second final vote', () => {
   const game = setup()
   expect(game.show('a')).toMatchObject({ phase: 'turn-intro', deadline: 3000 })
-  expect(game.show('a').modifier).toBeUndefined()
+  expect(game.show('a').persona).toBeUndefined()
   expect(game.show('a').prompt).toBeUndefined()
   expect(game.show('b').previewWait).toEqual({ deadline: 18_000, duration: 18_000 })
   game.next(2999)
   expect(game.show('a').phase).toBe('turn-intro')
   game.next(1)
-  expect(game.show('a')).toMatchObject({ phase: 'modifier-preview', deadline: 13_000, modifier: { name: 'The Troll' } })
+  expect(game.show('a')).toMatchObject({ phase: 'persona-preview', deadline: 13_000, persona: { name: 'The Troll' } })
   expect(game.show('a').prompt).toBeUndefined()
   expect(game.show('b').prompt).toBeUndefined()
   expect(game.show('b').previewWait).toEqual({ deadline: 18_000, duration: 18_000 })
-  expect(game.show('b').modifier).toBeUndefined()
+  expect(game.show('b').persona).toBeUndefined()
   expect(() => game.send('a', { type: 'answer', phase: 'answering', text: 'Too early' })).toThrow()
   game.next(9999)
-  expect(game.show('a').phase).toBe('modifier-preview')
+  expect(game.show('a').phase).toBe('persona-preview')
   game.next(1)
   expect(game.show('a')).toMatchObject({ phase: 'prompt-preview', deadline: 18_000, prompt: 'Best vacation destination' })
-  expect(game.show('a').modifier).toBeUndefined()
+  expect(game.show('a').persona).toBeUndefined()
   expect(game.show('b').prompt).toBeUndefined()
   expect(game.show('b').previewWait).toEqual({ deadline: 18_000, duration: 18_000 })
   game.next(4999)
@@ -113,7 +120,7 @@ test('reveals Paris as soon as answering ends and runs a private 15-second final
   expect(game.show('b').previewWait).toBeUndefined()
   game.send('a', { type: 'answer', phase: 'answering', text: 'Paris' })
   expect(game.show('b')).toMatchObject({ entries: [] })
-  expect(game.show('b').modifier).toBeUndefined()
+  expect(game.show('b').persona).toBeUndefined()
   game.next(19_999)
   expect(game.show('b').entries).toEqual([])
   game.next(1)
@@ -156,7 +163,7 @@ test('all opponents challenging skips Phase 2 and awards Troll 33', () => {
   expect(game.show('b')).toMatchObject({ phase: 'final-votes', result: { awards: { a: 33, b: 0, c: 0, d: 0 } } })
 })
 
-test('a late answer is rejected and a missed turn hides the Modifier', () => {
+test('a late answer is rejected and a missed turn hides the Persona', () => {
   const game = setup()
   game.next(3000)
   game.next(10_000)
@@ -165,5 +172,5 @@ test('a late answer is rejected and a missed turn hides the Modifier', () => {
   game.next(20_000)
   expect(game.show('b').phase).toBe('scoring')
   expect(game.show('b').result).toMatchObject({ missed: true, awards: { a: 0, b: 0, c: 0, d: 0 } })
-  expect(game.show('b').result?.modifier).toBeUndefined()
+  expect(game.show('b').result?.persona).toBeUndefined()
 })

@@ -1,17 +1,17 @@
 import type {
   Action,
   Entry,
-  Modifier,
+  Persona,
   Phase,
   Player,
   Result,
   RoomView
 } from '../shared/protocol';
-import { modifiers, scoreModifier } from './modifiers';
+import { personas, scorePersona } from './personas';
 
 export const durations = {
   'turn-intro': 3_000,
-  'modifier-preview': 10_000,
+  'persona-preview': 10_000,
   'prompt-preview': 5_000,
   answering: 20_000,
   response: 30_000,
@@ -21,9 +21,9 @@ export const durations = {
   'final-votes': 5_000,
   scoring: 10_000
 };
-export const fixtureDraw = (prompt = 'Best vacation destination'): { prompt: string; modifier: Modifier } => ({
+export const fixtureDraw = (prompt = 'Best vacation destination'): { prompt: string; persona: Persona } => ({
   prompt,
-  modifier: modifiers.find(({ name }) => name === 'The Troll')!
+  persona: personas.find(({ name }) => name === 'The Troll')!
 });
 
 type Turn = {
@@ -33,7 +33,7 @@ type Turn = {
   players: Player[];
   answeringId: string;
   prompt: string;
-  modifier: Modifier;
+  persona: Persona;
   original?: Entry;
   challenges: Entry[];
   answerIds: Record<string, string>;
@@ -56,7 +56,7 @@ export function createTurn(
   players: Player[],
   answeringId: string,
   clock: () => number,
-  draw: () => { prompt: string; modifier: Modifier },
+  draw: () => { prompt: string; persona: Persona },
   nextId: () => string,
   timing = durations
 ): Turn {
@@ -192,9 +192,9 @@ function score(turn: Turn, now: number): Turn {
     ])
   );
   const playerIds = turn.players.map(({ id }) => id);
-  const card = modifiers.find(({ name }) => name === turn.modifier.name);
+  const card = personas.find(({ name }) => name === turn.persona.name);
   const { awards, bonusTurn } = turn.original && card
-    ? scoreModifier(card.name, turn.answeringId, playerIds, turn.challenges, totals, totals[turn.original.id])
+    ? scorePersona(card.name, turn.answeringId, playerIds, turn.challenges, totals, totals[turn.original.id])
     : { awards: Object.fromEntries(playerIds.map(id => [id, 0])), bonusTurn: false };
   const phase = turn.original ? 'final-votes' : 'scoring';
   return {
@@ -208,7 +208,7 @@ function score(turn: Turn, now: number): Turn {
       totals,
       votes: turn.votes,
       missed: !turn.original,
-      modifier: turn.original ? turn.modifier : undefined
+      persona: turn.original ? turn.persona : undefined
     }
   };
 }
@@ -219,10 +219,10 @@ export function advance(turn: Turn, now: number): Turn {
     case 'turn-intro':
       return {
         ...turn,
-        phase: 'modifier-preview',
-        deadline: now + turn.durations['modifier-preview']
+        phase: 'persona-preview',
+        deadline: now + turn.durations['persona-preview']
       };
-    case 'modifier-preview':
+    case 'persona-preview':
       return {
         ...turn,
         phase: 'prompt-preview',
@@ -289,17 +289,22 @@ export function view(
   you: string,
   turn: Turn | undefined,
   now: number,
-  savedResult?: Result
+  savedResult?: Result & { modifier?: Persona }
 ): RoomView {
   const base = { code, players, hostId, you, serverTime: now, entries: [] };
-  if (!turn)
-    return savedResult
-      ? { ...base, phase: 'complete', result: savedResult }
-      : { ...base, phase: 'lobby' };
+  if (!turn) {
+    if (!savedResult) return { ...base, phase: 'lobby' };
+    const { modifier: legacyPersona, ...result } = savedResult;
+    return {
+      ...base,
+      phase: 'complete',
+      result: { ...result, persona: result.persona ?? legacyPersona }
+    };
+  }
   const { phase, deadline, answeringId, prompt, original, challenges, result } =
     turn;
   const answering = answeringId === you;
-  const previewing = phase === 'turn-intro' || phase === 'modifier-preview' || phase === 'prompt-preview';
+  const previewing = phase === 'turn-intro' || phase === 'persona-preview' || phase === 'prompt-preview';
   const entries = turn.review ? challenges.filter(({ id }) => turn.review!.answerIds.includes(id))
     : !original ? []
     : phase === 'voting' ? [original, ...challenges]
@@ -318,12 +323,12 @@ export function view(
       !answering && previewing && deadline !== undefined
         ? {
             deadline: deadline
-              + (phase === 'turn-intro' ? turn.durations['modifier-preview'] : 0)
+              + (phase === 'turn-intro' ? turn.durations['persona-preview'] : 0)
               + (phase !== 'prompt-preview' ? turn.durations['prompt-preview'] : 0),
-            duration: turn.durations['turn-intro'] + turn.durations['modifier-preview'] + turn.durations['prompt-preview']
+            duration: turn.durations['turn-intro'] + turn.durations['persona-preview'] + turn.durations['prompt-preview']
           }
         : undefined,
-    modifier: !result && answering && phase !== 'turn-intro' && phase !== 'prompt-preview' ? turn.modifier : undefined,
+    persona: !result && answering && phase !== 'turn-intro' && phase !== 'prompt-preview' ? turn.persona : undefined,
     entries: entries.map(({ id, text, disqualified }) => ({ id, text, disqualified })),
     canFlagDuplicates: phase === 'voting' && canFlagDuplicates(turn, you),
     duplicateReview: turn.review && {

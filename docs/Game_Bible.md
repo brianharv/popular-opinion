@@ -1,6 +1,6 @@
 # Popular Opinion — Game Bible
 
-Design reference for the browser version of Popular Opinion. Players gather in the same room and use their own devices to answer Prompts, support an answer, or challenge it. A private Modifier determines how the Answering Player scores and can change what happens after scoring.
+Design reference for the browser version of Popular Opinion. Players gather in the same room and use their own devices to answer Prompts, support an answer, or challenge it. A private Persona determines how the Answering Player scores and can change what happens after scoring.
 
 This edition uses the refined rulings in [AGENTS.md](https://chatgpt.com/library?file_id=libfile_dce70daf99a08191808d235ac1b08eac&account_id=personal). The card spreadsheet supplies the Prompt text. See **Open design decisions** for cases still awaiting a ruling.
 
@@ -21,19 +21,19 @@ Use a private room for 4–12 players. The game is designed for co-located play.
 
 ## Card draws
 
-- Draw one random Modifier independently each regular or bonus turn. Draws are with replacement, so the same Modifier can appear on consecutive turns. Tiebreakers use no Modifier.
+- Draw one random Persona independently each regular or bonus turn. Draws are with replacement, so the same Persona can appear on consecutive turns. Tiebreakers use no Persona.
 - Regular turns, bonus turns, and tiebreakers share one Prompt deck per match. Start with the full deck in shuffled order and draw without replacement. When a draw is needed and the deck is empty, restore every Prompt, shuffle the full deck, and continue the same match.
 - Persist the remaining Prompt order and consume each draw even if the interrupted turn never commits its score. A replay after a server restart draws from the remaining deck, reshuffling if it is empty.
 
 ## Anatomy of a turn
 
-1. Draw a Prompt and Modifier together. Show the Answering Player a personalized turn announcement for 3 seconds. Then show them only the Modifier for 10 seconds and then only the Prompt for 5 seconds. During the announcement and both previews, opponents see a single waiting screen with the Answering Player’s name and a countdown. Reveal the Prompt to opponents when the answer timer starts. Keep the Modifier private to the Answering Player until scoring.
-2. The Answering Player gets 20 seconds to submit and revise. After a submission, show the server-accepted answer and let the player reopen the form to revise it. At zero, lock the last submitted answer. If no answer was submitted, skip directly to a 10-second shared “No answer submitted” scoring view with current standings, zero awards, and no Modifier reveal.
+1. Draw a Prompt and Persona together. Show the Answering Player a personalized turn announcement for 3 seconds. Then show them only the Persona for 10 seconds and then only the Prompt for 5 seconds. During the announcement and both previews, opponents see a single waiting screen with the Answering Player’s name and a countdown. Reveal the Prompt to opponents when the answer timer starts. Keep the Persona private to the Answering Player until scoring.
+2. The Answering Player gets 20 seconds to submit and revise. After a submission, show the server-accepted answer and let the player reopen the form to revise it. At zero, lock the last submitted answer. If no answer was submitted, skip directly to a 10-second shared “No answer submitted” scoring view with current standings, zero awards, and no Persona reveal.
 3. Reveal the locked answer as soon as the answer timer reaches zero.
 4. Run the 30-second Phase 1 response window. Opponents explicitly submit Support or Challenge and can change their submitted choice until the deadline. Show each player their last accepted choice and answer. Draft edits or selecting an option in the form leave the accepted choice intact. An absent response or a challenge without a valid nonblank submission defaults to Support.
-5. If support votes total zero, skip Phase 2, reveal the Modifier at scoring, and award zero by default. An explicit Modifier override can still award points or deduct points here.
+5. If support votes total zero, skip Phase 2, reveal the Persona at scoring, and award zero by default. An explicit Persona override can still award points or deduct points here.
 6. Otherwise, reveal challenge answers and run Phase 2 for 15 seconds. Only Phase 1 supporters can move their vote, choosing between the original answer and valid challenge answers. A supporter who takes no action retains their initial allocation. Players see their own current action, and final vote allocations and totals become public at scoring.
-7. When the Phase 2 timer reaches zero, all votes must point to valid answers before scoring. Resolve the Modifier and challenger awards, commit the outcome, then show final votes for 5 seconds followed by the standings for 10 seconds before automatically advancing. Show the same results on every device and highlight the viewer's standings row with a visible “You” label.
+7. When the Phase 2 timer reaches zero, all votes must point to valid answers before scoring. Resolve the Persona and challenger awards, commit the outcome, then show final votes for 5 seconds followed by the standings for 10 seconds before automatically advancing. Show the same results on every device and highlight the viewer's standings row with a visible “You” label.
 
 Timed phases run to zero even if everyone has submitted. The voting clock keeps running while a player selects duplicates and pauses when the server accepts the flag. A completed review restores the greater of the paused time and 10 seconds when play resumes.
 
@@ -47,13 +47,13 @@ Timed phases run to zero even if everyone has submitted. The voting clock keeps 
 
 ## Scoring
 
-Use **support votes** for initial Phase 1 support, including defaults, **retained votes** for votes on the original answer at the end of Phase 2, and **votes for a challenger** for final votes on that challenger's answer. Count valid Phase 1 challenges even if an answer is subsequently disqualified, unless the Modifier explicitly says otherwise.
+Use **support votes** for initial Phase 1 support, including defaults, **retained votes** for votes on the original answer at the end of Phase 2, and **votes for a challenger** for final votes on that challenger's answer. Count valid Phase 1 challenges even if an answer is subsequently disqualified, unless the Persona explicitly says otherwise.
 
-Default challenger award is 2 points per final vote, doubled for every eligible challenger tied for the most votes among challengers. Disqualified challengers get zero under default scoring. Modifier text takes precedence over the default rules where it explicitly addresses them. A missed original answer always gives everyone zero. Cumulative scores can go below zero. Apply deductions in full and show negative totals in the standings.
+Default challenger award is 2 points per final vote, doubled for every eligible challenger tied for the most votes among challengers. Disqualified challengers get zero under default scoring. Persona text takes precedence over the default rules where it explicitly addresses them. A missed original answer always gives everyone zero. Cumulative scores can go below zero. Apply deductions in full and show negative totals in the standings.
 
 **Zero support.** The Troll, Provocateur, and Suddenly Libertarian have confirmed scoring overrides when everyone challenges. Phase 2 is still skipped. A turn with no submitted original answer follows the separate “No answer submitted” outcome.
 
-## Modifier catalog
+## Persona catalog
 
 ### The College Try
 
@@ -129,7 +129,7 @@ _Side effects include dizziness, dry-mouth, and spontaneous racist tirades broug
 
 ## Tiebreakers
 
-- Contenders receive the same Prompt with no Modifier. Allow 30 seconds to submit or revise. If nobody submits, give the same contenders a fresh Prompt. If exactly one submits, that player wins. Otherwise eliminate contenders who missed the deadline.
+- Contenders receive the same Prompt with no Persona. Allow 30 seconds to submit or revise. If nobody submits, give the same contenders a fresh Prompt. If exactly one submits, that player wins. Otherwise eliminate contenders who missed the deadline.
 - Reveal submitted answers together as soon as the answer window closes and start the 30-second ballot. Show anonymous answer options in the same shuffled order on every device.
 - Only players who aren't answering the current Prompt can vote or initiate and participate in duplicate review. An eliminated contender can vote on the next Prompt.
 - Each vote counts one point for this ballot. A missed ballot is an abstention. If one contender receives the most votes, they win. If multiple contenders tie for first, only those contenders advance to a fresh Prompt. After two consecutive completed ballots with zero votes, declare a shared tie among the remaining contenders.
@@ -154,11 +154,11 @@ _Side effects include dizziness, dry-mouth, and spontaneous racist tirades broug
 | Four-player Suddenly Libertarian, everyone challenges                 | Skip Phase 2. Answering Player earns 4 points (3 × 3 − 5), others zero.                                                     |
 | Ice Breaker starts at 2 points and nobody challenges                  | Apply the −3 award. Show a cumulative score of −1 in the standings.                                                         |
 | Answering Player submits Paris, then edits to Rome without submitting | Paris reveals as soon as the answer timer reaches zero.                                                                     |
-| Answering Player times out with no submission and The Troll           | Zero points and no Modifier reveal on any opponent device.                                                                  |
+| Answering Player times out with no submission and The Troll           | Zero points and no Persona reveal on any opponent device.                                                                  |
 | Duplicate review paused at 6 or 14 seconds                            | Completed reviews restore 10 or 14 seconds respectively. Opening or canceling the selector leaves the voting clock running. |
 | Duplicates pass while a challenge holds a vote                        | Vote returns atomically to the original answer and the voter sees it.                                                       |
 | Five eligible duplicate voters, two yes and three no                  | Review fails. A separate case verifies missing ballots become yes at the deadline.                                          |
-| Four browser sessions inspect live updates and reconnect              | Private Modifier and vote allocations appear only in the intended views before scoring.                                     |
+| Four browser sessions inspect live updates and reconnect              | Private Persona and vote allocations appear only in the intended views before scoring.                                     |
 | 50-point target, final totals 58, 50, and 49                          | Players at 58 and 50 qualify. Player at 49 does not.                                                                        |
 | Round-based final scheduled turn grants chained bonuses               | Play the chain before checking the standings.                                                                               |
 | Tiebreaker, duplicate review leaves one or zero answers               | One wins immediately. Zero draws a fresh Prompt.                                                                            |
@@ -168,7 +168,7 @@ _Side effects include dizziness, dry-mouth, and spontaneous racist tirades broug
 ## Open design decisions
 
 - Settle whether submitting a flag automatically records the flagger’s yes ballot.
-- Confirm whether any Modifier besides The Troll, Provocateur, and Suddenly Libertarian overrides zero-support scoring.
+- Confirm whether any Persona besides The Troll, Provocateur, and Suddenly Libertarian overrides zero-support scoring.
 - Confirm room join details and host permissions beyond starting and ending the match, including whether a host can transfer control.
 - Confirm tiebreaker ballot revision behavior and the presentation timing after a tiebreaker result.
 

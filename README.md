@@ -53,7 +53,7 @@ If Compose hangs before starting PostgreSQL, check whether Docker Desktop is res
 
 ## Milestone fixtures and assumptions
 
-- The server shuffles the full Game Bible Prompt deck and the answering order at match start. Prompts come from the saved deck without replacement. When the deck runs out, the server reshuffles the full deck. An interrupted turn draws the next Prompt and gets a fresh timer. The server draws independently from the full Modifier catalog on each regular or bonus turn. The multiplayer test fixture uses **The Troll**.
+- The server shuffles the full Game Bible Prompt deck and the answering order at match start. Prompts come from the saved deck without replacement. When the deck runs out, the server reshuffles the full deck. An interrupted turn draws the next Prompt and gets a fresh timer. The server draws independently from the full Persona catalog on each regular or bonus turn. The multiplayer test fixture uses **The Troll**.
 - Scoring shows final votes for five seconds and the turn awards and cumulative standings for ten seconds. After a restart, a committed result restores directly into the next scheduled turn, bonus turn, or final standings. Only started matches are checkpointed. Saved one-turn matches retain their original format.
 - When multiple players qualify for a tiebreaker, the game records and displays the contenders. The tiebreaker ballot is deferred. If everyone qualifies, the game declares a shared tie.
 - This lobby uses an eight-character room code and a browser-held seat token. Screen names are 1–24 characters and unique within the lobby. Answers are limited to 160 characters. The host can start with 4–12 occupied seats when every seat is connected. These are local milestone conventions.

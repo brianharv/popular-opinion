@@ -1,5 +1,5 @@
-// Subtitle text follows the Game Bible Modifier catalog.
-export const modifierSubtitles = new Map<string, string>([
+// Subtitle text follows the Game Bible Persona catalog.
+export const personaSubtitles = new Map<string, string>([
   ['The College Try', 'Just a plain ol’ good faith answer.'],
   ['Panderer', 'Shut up and play the hits to the cheap seats.'],
   ['Ice Breaker', '“Let’s give them something to talk about.”'],

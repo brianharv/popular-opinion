@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test'
 import type { ServerMessage } from '../shared/protocol'
 
-test('four seats reconnect, keep the Modifier private, and share committed scoring', async ({ browser, baseURL }) => {
+test('four seats reconnect, keep the Persona private, and share committed scoring', async ({ browser, baseURL }) => {
   test.setTimeout(45_000)
   const contexts = await Promise.all(Array.from({ length: 4 }, () => browser.newContext({
     baseURL, viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true,
@@ -57,7 +57,7 @@ test('four seats reconnect, keep the Modifier private, and share committed scori
     const answerer = pages[answererIndex]
     const [challenger, other, supporter] = pages.filter(page => page !== answerer)
     const promptHeading = answerer.getByRole('heading', { level: 1, name: /^“.+”$/ })
-    const waiting = supporter.getByText('Please wait while they review the prompt and modifier.')
+    const waiting = supporter.getByText('Please wait while they review the prompt and persona.')
     const opponentPrompt = supporter.getByRole('heading', { level: 1, name: /^“.+”$/ })
     await expect(answerer.getByRole('heading', { name: `It’s your turn, Player ${answererIndex + 1}` })).toBeVisible()
     await expect(answerer.getByText('The Troll', { exact: true })).toHaveCount(0)
@@ -86,7 +86,7 @@ test('four seats reconnect, keep the Modifier private, and share committed scori
       .toHaveCSS('text-align', 'center')
     const subtitle = 'If you don’t have anything nice to say, say it on the internet.'
     await expect(answerer.getByText(subtitle)).toBeVisible()
-    await expect(answerer.getByText('Private Modifier', { exact: true })).toHaveCount(0)
+    await expect(answerer.getByText('Private Persona', { exact: true })).toHaveCount(0)
     await expect(challenger.getByText(subtitle)).toHaveCount(0)
     await answerer.getByLabel('Your answer').fill('Lisbon')
     await answerer.getByLabel('Your answer').press('Enter')
@@ -183,14 +183,14 @@ test('four seats reconnect, keep the Modifier private, and share committed scori
       if (index === answererIndex) continue
       const previewViews = messages.map(raw => JSON.parse(raw) as ServerMessage)
         .flatMap(message => 'view' in message && message.view.previewWait ? [message.view] : [])
-      expect(previewViews.some(view => view.phase === 'modifier-preview')).toBe(true)
+      expect(previewViews.some(view => view.phase === 'persona-preview')).toBe(true)
       expect(previewViews.some(view => view.phase === 'prompt-preview')).toBe(true)
       expect(previewViews.every(view => view.prompt === undefined)).toBe(true)
       const preScoreFrames = messages.filter(raw => !raw.includes('"result"'))
       expect(preScoreFrames.every(raw => !raw.includes('The Troll'))).toBe(true)
       const privateViews = messages.map(raw => JSON.parse(raw) as ServerMessage)
         .flatMap(message => 'view' in message && !message.view.result ? [message.view] : [])
-      expect(privateViews.every(view => view.modifier === undefined)).toBe(true)
+      expect(privateViews.every(view => view.persona === undefined)).toBe(true)
       if (pages[index] !== supporter) expect(privateViews.every(view => view.vote === undefined)).toBe(true)
     }
     await Promise.all(pages.map(async page => {

@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { modifiers, scoreModifier } from './modifiers';
+import { personas, scorePersona } from './personas';
 
 const players = ['a', 'b', 'c', 'd', 'e', 'f'];
 const challenges = [
@@ -24,7 +24,7 @@ test.each([
   '%s scores a tied challenger ballot',
   (name, answering, challenger, bonusTurn) => {
     expect(
-      scoreModifier(name, 'a', players, challenges, { x: 1, y: 1 }, 1)
+      scorePersona(name, 'a', players, challenges, { x: 1, y: 1 }, 1)
     ).toEqual({
       awards: { a: answering, b: challenger, c: challenger, d: 0, e: 0, f: 0 },
       bonusTurn
@@ -42,9 +42,9 @@ test('only the confirmed exceptions score when everyone challenges', () => {
     Provocateur: -5,
     'Suddenly Libertarian': 4
   };
-  for (const { name } of modifiers) {
+  for (const { name } of personas) {
     expect(
-      scoreModifier(
+      scorePersona(
         name,
         'a',
         players.slice(0, 4),
@@ -64,8 +64,8 @@ test('disqualified challenges still count and Finsta deducts from each', () => {
     ...challenges.map((entry) => ({ ...entry, disqualified: true })),
     { id: 'z', authorId: 'd', text: 'Oslo' }
   ];
-  const score = (name: Parameters<typeof scoreModifier>[0]) =>
-    scoreModifier(name, 'a', players, entries, { x: 0, y: 0, z: 1 }, 1).awards;
+  const score = (name: Parameters<typeof scorePersona>[0]) =>
+    scorePersona(name, 'a', players, entries, { x: 0, y: 0, z: 1 }, 1).awards;
   expect(score('The Troll').a).toBe(6);
   expect(score('Panderer').a).toBe(-2);
   expect(score('Finsta')).toEqual({ a: 8, b: -3, c: -3, d: 1, e: 0, f: 0 });
@@ -73,7 +73,7 @@ test('disqualified challenges still count and Finsta deducts from each', () => {
 
 test('a challenger lead earns Ambien a bonus and wipes out Double Down', () => {
   const score = (name: 'Double Down' | 'The Ambien Defense') =>
-    scoreModifier(
+    scorePersona(
       name,
       'a',
       players.slice(0, 4),

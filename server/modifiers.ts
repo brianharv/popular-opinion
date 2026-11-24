@@ -19,12 +19,12 @@ export const modifiers = [
     rule: 'Earn 2 points per challenger. Earn an additional 5 points if you retain zero votes. Triple your score this round if everyone challenges. Lose 5 points if nobody challenges. Challengers earn no points.'
   },
   {
-    name: 'Provacateur',
+    name: 'Provocateur',
     rule: '2 points per challenger plus 2 points per retained vote. Triple if at least one opponent challenges and no challenger receives a vote. If every opponent challenges, lose 5 points instead.'
   },
   {
     name: 'Touché',
-    rule: '5 points per retained vote if at least one vote was retained and any challenger receives the same number. Otherwise zero.'
+    rule: 'You score 5 points per retained vote if at least one vote was retained and any challenger receives the same number. Otherwise score zero.'
   },
   {
     name: 'Deadlock',
@@ -83,7 +83,7 @@ export function scoreModifier(
 
   if (support === 0) {
     if (name === 'The Troll') award = (2 * count + 5) * 3;
-    if (name === 'Provacateur') award = -5;
+    if (name === 'Provocateur') award = -5;
     if (name === 'Suddenly Libertarian') award = 3 * count - 5;
   } else {
     switch (name) {
@@ -99,7 +99,7 @@ export function scoreModifier(
       case 'The Troll':
         award = 2 * count + (retained === 0 ? 5 : 0) - (count === 0 ? 5 : 0);
         break;
-      case 'Provacateur':
+      case 'Provocateur':
         award = (2 * count + 2 * retained) * (count > 0 && best === 0 ? 3 : 1);
         break;
       case 'Touché':

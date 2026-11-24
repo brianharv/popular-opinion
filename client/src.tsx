@@ -232,7 +232,13 @@ function HowToPlay() {
   );
 }
 
-function RoomCode({ code }: { code: string }) {
+function RoomCode({
+  code,
+  showShareHint = false
+}: {
+  code: string;
+  showShareHint?: boolean;
+}) {
   const [copyStatus, setCopyStatus] = useState<'idle' | 'copied' | 'failed'>(
     'idle'
   );
@@ -297,6 +303,11 @@ function RoomCode({ code }: { code: string }) {
           )}
         </svg>
       </button>
+      {showShareHint && (
+        <small className='room-share-hint'>
+          Share the room code to add more players.
+        </small>
+      )}
       <small role='status'>
         {copyStatus === 'copied' && 'Room code copied.'}
         {copyStatus === 'failed' &&
@@ -505,7 +516,9 @@ function Room() {
               <span aria-hidden='true'>←</span>
             </Link>
           )}
-          {view?.phase === 'lobby' && <RoomCode key={code} code={code} />}
+          {view?.phase === 'lobby' && (
+            <RoomCode key={code} code={code} showShareHint />
+          )}
           {view && view.phase !== 'lobby' && (
             <HeaderTimer
               screenKey={screenKey}
@@ -762,10 +775,11 @@ function MatchSetup({
 function ModifierCard({ modifier }: { modifier: Modifier }) {
   const subtitle = modifierSubtitles.get(modifier.name);
   return (
-    <aside>
+    <aside className='modifier-card'>
       <strong className='modifier-title'>{modifier.name}</strong>
       {subtitle && <p className='modifier-subtitle'>{subtitle}</p>}
-      <p>{modifier.rule}</p>
+      <hr className='horizontal-center narrow-line' />
+      <p className='modifier-rule'>{modifier.rule}</p>
     </aside>
   );
 }
@@ -1003,12 +1017,9 @@ function Turn({
     return (
       <section className='card waiting-room'>
         <h1>Waiting room</h1>
-        <div className='waiting-room-details'>
-          <p>Copy and share the room code to add more players.</p>
-          <p role='status'>
-            Players needed: <strong>{playersNeeded}</strong>
-          </p>
-        </div>
+        <p className='players-needed' role='status'>
+          Players needed: <strong>{playersNeeded}</strong>
+        </p>
         <ul
           className='rows lobby-roster'
           aria-label='Players'
@@ -1253,7 +1264,9 @@ function Turn({
       <h1 className='horizontal-center'>{quote(view.prompt)}</h1>
       {view.modifier && <ModifierCard modifier={view.modifier} />}
       {phase === 'response' && (
-        <blockquote>{quote(view.entries[0]?.text)}</blockquote>
+        <blockquote className='horizontal-center'>
+          {quote(view.entries[0]?.text)}
+        </blockquote>
       )}
       {showSubmission && (
         <div className='horizontal-center'>

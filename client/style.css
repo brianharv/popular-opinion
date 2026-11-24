@@ -91,14 +91,16 @@ h3 {
 }
 
 .hero {
+  container-type: inline-size;
   text-align: center;
   padding-block: clamp(2rem, 9vw, 5rem) clamp(1.25rem, 4vw, 2rem);
 }
 
 .hero h1 {
-  font-size: clamp(3rem, 13vw, 8.75rem);
+  font-size: min(8.75rem, 14cqi);
   letter-spacing: -0.045em;
   margin: 0.5rem 0 0.75rem;
+  white-space: nowrap;
 }
 
 .hero h1 span {

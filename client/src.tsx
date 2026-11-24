@@ -34,7 +34,7 @@ import { modifierSubtitles } from './modifier-subtitles';
 import './style.css';
 
 const seatKey = (code: string) => `popular-opinion:${code}`;
-const quote = (text?: string) => text === undefined ? undefined : `“${text}”`;
+const quote = (text?: string) => (text === undefined ? undefined : `“${text}”`);
 
 function readSeatToken(code: string) {
   const key = seatKey(code);
@@ -99,7 +99,13 @@ function Home() {
         <h1>
           Popular Opinion<span>.</span>
         </h1>
-        <p>Give your best answer. See who agrees.</p>
+        <p className='hero-tagline'>
+          Share your{' '}
+          <span className='tagline-correction' aria-hidden='true'>
+            honest<span className='tagline-ink'>best</span>
+          </span>
+          <span className='tagline-reading'>best</span> answer. See who agrees.
+        </p>
       </section>
       <section>
         <div className='home-actions'>
@@ -184,7 +190,7 @@ function HowToPlay() {
         </li>
         <li>
           Each turn, one player tries to score as many points as possible by
-          answering a <strong>prompt</strong> using their secret{' '}
+          answering a <strong>prompt</strong> and using their secret{' '}
           <strong>modifier</strong>.
         </li>
         <li>
@@ -199,7 +205,7 @@ function HowToPlay() {
           When time expires, everyone sees the votes, modifier, and points.
         </li>
       </ul>
-      <h2>Keep in mind</h2>
+      <h2>Scoring</h2>
       <ul>
         <li>
           Each <strong>modifier</strong> affects the scoring of each turn
@@ -216,9 +222,10 @@ function HowToPlay() {
           ends and no one scores any points.
         </li>
       </ul>
+      <hr className='horizontal-center narrow-line'></hr>
       <h3 className='horizontal-center heavier-text'>
-        The modifier can change any rule for the current turn. What it says
-        goes, so pay attention.
+        The modifier changes the rules each turn. What it says goes, so pay
+        attention.
       </h3>
       <Link to='/'>Back to home</Link>
     </section>
@@ -262,7 +269,7 @@ function RoomCode({ code }: { code: string }) {
   return (
     <div className='room-code' data-copy-status={copyStatus}>
       <span>
-        Room code <strong>{code}</strong>
+        Room code: <strong>{code}</strong>
       </span>
       <button
         type='button'
@@ -347,11 +354,7 @@ function RoomMenu({
         {error && <p role='alert'>{error}</p>}
         <form method='dialog' className='room-menu-actions'>
           {endGame ? (
-            <button
-              type='button'
-              disabled={!online}
-              onClick={endGame}
-            >
+            <button type='button' disabled={!online} onClick={endGame}>
               End Game
             </button>
           ) : (
@@ -402,6 +405,8 @@ function Room() {
   const [online, setOnline] = useState(false);
   const socket = useRef<WebSocket | null>(null);
   const offset = useRef(0);
+  const endGameDialog = useRef<HTMLDialogElement>(null);
+  const endGameTitle = useId();
 
   useEffect(() => {
     const token = readSeatToken(code);
@@ -461,19 +466,40 @@ function Room() {
     return true;
   }
 
-  function endGame() {
-    if (socket.current?.readyState === WebSocket.OPEN && window.confirm('End the game for everyone?')) {
+  function requestEndGame() {
+    endGameDialog.current?.showModal();
+  }
+
+  function confirmEndGame() {
+    if (socket.current?.readyState === WebSocket.OPEN) {
       socket.current.send(
         JSON.stringify({ type: 'end-game', confirmed: true })
       );
+      endGameDialog.current?.close();
     }
   }
 
   const connecting = !online && !error;
+  const timer =
+    view?.previewWait ??
+    (view?.deadline !== undefined &&
+    (view.phase === 'answering' ||
+      view.phase === 'response' ||
+      view.phase === 'voting' ||
+      view.phase === 'scoring' ||
+      view.duplicateReview)
+      ? { deadline: view.deadline, duration: view.phaseDuration }
+      : undefined);
+  const screen = view?.previewWait ? 'preview-wait' : view?.phase;
+  const screenKey = `${view?.turnId ?? 'room'}:${screen}`;
   return (
     <>
       {view?.phase !== 'complete' && (
-        <header className='top'>
+        <header
+          className={
+            view && view.phase !== 'lobby' ? 'top top-with-timer' : 'top'
+          }
+        >
           {(!view || view.phase === 'lobby') && (
             <Link to='/' className='room-back' aria-label='Back to home'>
               <span aria-hidden='true'>←</span>
@@ -481,12 +507,27 @@ function Room() {
           )}
           {view?.phase === 'lobby' && <RoomCode key={code} code={code} />}
           {view && view.phase !== 'lobby' && (
+            <HeaderTimer
+              screenKey={screenKey}
+              transition={
+                view.duplicateReview
+                  ? 'duplicate'
+                  : view.result
+                    ? 'results'
+                    : 'turn'
+              }
+              timer={timer}
+              online={online}
+              offset={offset.current}
+            />
+          )}
+          {view && view.phase !== 'lobby' && (
             <RoomMenu
               key={code}
               code={code}
               error={error}
               online={online}
-              endGame={view.hostId === view.you ? endGame : undefined}
+              endGame={view.hostId === view.you ? requestEndGame : undefined}
             />
           )}
         </header>
@@ -503,27 +544,101 @@ function Room() {
       )}
       {view && (
         <Turn
-          key={`${view.turnId ?? 'room'}:${view.previewWait ? 'preview-wait' : view.phase}`}
+          key={screenKey}
           view={view}
           send={send}
           online={online}
-          endGame={view.hostId === view.you ? endGame : undefined}
+          endGame={view.hostId === view.you ? requestEndGame : undefined}
           offset={offset.current}
         />
+      )}
+      {view && view.hostId === view.you && view.phase !== 'lobby' && (
+        <dialog
+          ref={endGameDialog}
+          className='card room-menu'
+          aria-labelledby={endGameTitle}
+        >
+          <h2 id={endGameTitle}>End the game for everyone?</h2>
+          <form method='dialog' className='end-game-actions'>
+            <button className='outline' autoFocus>
+              Cancel
+            </button>
+            <button
+              type='button'
+              className='confirm-end-game'
+              disabled={!online}
+              onClick={confirmEndGame}
+            >
+              End Game
+            </button>
+          </form>
+        </dialog>
       )}
       {connecting && <ConnectingToRoom />}
     </>
   );
 }
 
+function HeaderTimer({
+  screenKey,
+  transition,
+  timer,
+  online,
+  offset
+}: {
+  screenKey: string;
+  transition: 'turn' | 'results' | 'duplicate';
+  timer?: { deadline: number; duration?: number };
+  online: boolean;
+  offset: number;
+}) {
+  const deadline = timer?.deadline;
+  const duration = timer?.duration;
+  const [current, setCurrent] = useState({ screenKey, deadline, duration });
+  const [previous, setPrevious] = useState<typeof current>();
+  if (current.screenKey !== screenKey) {
+    setPrevious(current.deadline === undefined ? undefined : current);
+    setCurrent({ screenKey, deadline, duration });
+  } else if (current.deadline !== deadline || current.duration !== duration) {
+    setCurrent({ screenKey, deadline, duration });
+  }
+
+  return (
+    <div className='header-timer' data-transition={transition}>
+      {previous?.deadline !== undefined && (
+        <Timer
+          key={`${previous.screenKey}:${previous.deadline}:${online}`}
+          deadline={previous.deadline}
+          duration={previous.duration}
+          offset={offset}
+          leaving
+        />
+      )}
+      {deadline !== undefined && (
+        <Timer
+          key={`${screenKey}:${deadline}:${online}`}
+          deadline={deadline}
+          duration={duration}
+          offset={offset}
+          enteringAfterFade={previous !== undefined}
+        />
+      )}
+    </div>
+  );
+}
+
 function Timer({
   deadline,
   duration,
-  offset
+  offset,
+  leaving = false,
+  enteringAfterFade = false
 }: {
   deadline: number;
   duration?: number;
   offset: number;
+  leaving?: boolean;
+  enteringAfterFade?: boolean;
 }) {
   if (!duration) return null;
   const seconds = duration / 1000;
@@ -532,13 +647,17 @@ function Timer({
     Math.max(0, (deadline - Date.now() - offset) / 1000)
   );
   return (
-    <div className='timer'>
+    <div
+      className={leaving ? 'leaving-timer' : 'timer'}
+      data-after-fade={enteringAfterFade || undefined}
+      aria-hidden={leaving || undefined}
+    >
       <CountdownCircleTimer
         isPlaying={remaining > 0}
         duration={seconds}
         initialRemainingTime={remaining}
         updateInterval={1}
-        size={40}
+        size={24}
         strokeWidth={5}
         strokeLinecap='butt'
         colors={remaining > 0 ? '#1c4f86' : '#ddd7d2'}
@@ -752,34 +871,74 @@ function DuplicateFlag({
   const dialog = useRef<HTMLDialogElement>(null);
   const titleId = useId();
   const [selected, setSelected] = useState<string[]>([]);
-  const canSubmit = selected.length >= 2 &&
+  const canSubmit =
+    selected.length >= 2 &&
     entries.some((entry) => selected.includes(entry.id) && !entry.disqualified);
   return (
     <>
-      <button type='button' className='outline report-duplicates' disabled={!online} onClick={() => dialog.current?.showModal()}>
+      <button
+        type='button'
+        className='outline report-duplicates'
+        disabled={!online}
+        onClick={() => dialog.current?.showModal()}
+      >
         Report Duplicates
       </button>
-      <dialog ref={dialog} onClose={() => setSelected([])} aria-labelledby={titleId} className='card room-menu'>
+      <dialog
+        ref={dialog}
+        onClose={() => setSelected([])}
+        aria-labelledby={titleId}
+        className='card room-menu'
+      >
         <h2 id={titleId}>Flag duplicate answers</h2>
-        <p>Select at least two challenge answers, including one still in play.</p>
-        <form onSubmit={(event) => {
-          event.preventDefault();
-          if (online && canSubmit && send({ type: 'flag-duplicates', phase: 'voting', answerIds: selected })) {
-            dialog.current?.close();
-          }
-        }}>
+        <p>
+          Select at least two challenge answers, including one still in play.
+        </p>
+        <form
+          onSubmit={(event) => {
+            event.preventDefault();
+            if (
+              online &&
+              canSubmit &&
+              send({
+                type: 'flag-duplicates',
+                phase: 'voting',
+                answerIds: selected
+              })
+            ) {
+              dialog.current?.close();
+            }
+          }}
+        >
           {entries.map((entry) => (
             <label key={entry.id} className='duplicate-choice'>
-              <input type='checkbox' checked={selected.includes(entry.id)} onChange={(event) => {
-                setSelected(event.currentTarget.checked
-                  ? [...selected, entry.id]
-                  : selected.filter((id) => id !== entry.id));
-              }} />
-              <span>{quote(entry.text)}{entry.disqualified && <small className='duplicate-label'> Duplicate</small>}</span>
+              <input
+                type='checkbox'
+                checked={selected.includes(entry.id)}
+                onChange={(event) => {
+                  setSelected(
+                    event.currentTarget.checked
+                      ? [...selected, entry.id]
+                      : selected.filter((id) => id !== entry.id)
+                  );
+                }}
+              />
+              <span>
+                {quote(entry.text)}
+                {entry.disqualified && (
+                  <small className='duplicate-label'> Duplicate</small>
+                )}
+              </span>
             </label>
           ))}
           <button disabled={!online || !canSubmit}>Submit flag</button>
-          <button type='button' className='outline' onClick={() => dialog.current?.close()}>Cancel</button>
+          <button
+            type='button'
+            className='outline'
+            onClick={() => dialog.current?.close()}
+          >
+            Cancel
+          </button>
         </form>
       </dialog>
     </>
@@ -812,12 +971,15 @@ function Turn({
   const name = (id: string) => players.find((player) => player.id === id)?.name;
 
   const format = match?.format;
+  const turnLabel =
+    match &&
+    `Turn ${match.turnNumber}${match.isBonusTurn ? ' · Bonus turn' : ''}`;
   const progress =
     match &&
     format &&
     (format.type === 'rounds'
-      ? `Round ${Math.ceil(match.turnNumber / players.length)} of ${format.rounds} · Turn ${match.turnNumber}`
-      : `First to ${format.target} points · Turn ${match.turnNumber}`);
+      ? `Round ${Math.ceil((match.scheduledTurnNumber ?? match.turnNumber) / players.length)} of ${format.rounds} · ${turnLabel}`
+      : `First to ${format.target} points · ${turnLabel}`);
   const outcome = match?.outcome;
   const contenders = outcome?.playerIds.map(name).join(', ');
   const finish =
@@ -872,13 +1034,9 @@ function Turn({
   }
 
   if (view.previewWait) {
-    const { deadline, duration } = view.previewWait;
     return (
       <div className='round-preview'>
         <section className='card turn-transition horizontal-center'>
-          <div className='preview-wait-timer'>
-            <Timer key={`${deadline}:${online}`} deadline={deadline} duration={duration} offset={offset} />
-          </div>
           <h1>{name(view.answeringId!)}’s turn.</h1>
           <p>Please wait while they review the prompt and modifier.</p>
         </section>
@@ -886,11 +1044,17 @@ function Turn({
     );
   }
 
-  if (phase === 'modifier-preview' || phase === 'prompt-preview') {
+  if (
+    phase === 'turn-intro' ||
+    phase === 'modifier-preview' ||
+    phase === 'prompt-preview'
+  ) {
     return (
       <div className='round-preview'>
         <section className='card turn-transition'>
-          {phase === 'modifier-preview' && view.modifier ? (
+          {phase === 'turn-intro' ? (
+            <h1>It’s your turn, {name(you)}</h1>
+          ) : phase === 'modifier-preview' && view.modifier ? (
             <ModifierCard modifier={view.modifier} />
           ) : (
             <h1 className='horizontal-center'>{quote(view.prompt)}</h1>
@@ -904,23 +1068,51 @@ function Turn({
     const { eligible, ballot, outcome } = view.duplicateReview;
     return (
       <section className='card duplicate-transition'>
-        <div className='phase'>
-          <h1>{outcome ? 'Duplicate review result' : 'Are these answers duplicates?'}</h1>
-          {view.deadline !== undefined && (
-            <Timer deadline={view.deadline} duration={view.phaseDuration} offset={offset} />
-          )}
-        </div>
+        {progress && <p className='tag'>{progress}</p>}
+        <h1>
+          {outcome
+            ? 'Duplicate review result'
+            : 'Are these answers duplicates?'}
+        </h1>
         {outcome ? (
           <p role='status'>
-            {outcome.passed ? 'Answers deemed duplicates.' : 'Answers were not deemed duplicates.'}
-            {' '}{outcome.yes} yes · {outcome.no} no.
+            {outcome.passed
+              ? 'Answers deemed duplicates.'
+              : 'Answers were not deemed duplicates.'}{' '}
+            {outcome.yes} yes · {outcome.no} no.
           </p>
         ) : eligible ? (
           <div className='duplicate-vote-actions'>
-            <button type='button' className='outline' aria-pressed={ballot === true}
-              disabled={!online} onClick={() => send({ type: 'vote-duplicates', phase: 'duplicate-review', yes: true })}>Yes</button>
-            <button type='button' className='outline' aria-pressed={ballot === false}
-              disabled={!online} onClick={() => send({ type: 'vote-duplicates', phase: 'duplicate-review', yes: false })}>No</button>
+            <button
+              type='button'
+              className='outline'
+              aria-pressed={ballot === true}
+              disabled={!online}
+              onClick={() =>
+                send({
+                  type: 'vote-duplicates',
+                  phase: 'duplicate-review',
+                  yes: true
+                })
+              }
+            >
+              Yes
+            </button>
+            <button
+              type='button'
+              className='outline'
+              aria-pressed={ballot === false}
+              disabled={!online}
+              onClick={() =>
+                send({
+                  type: 'vote-duplicates',
+                  phase: 'duplicate-review',
+                  yes: false
+                })
+              }
+            >
+              No
+            </button>
           </div>
         ) : (
           <p>You’re spectating because one of your answers was flagged.</p>
@@ -928,7 +1120,9 @@ function Turn({
         <ul className='rows vote-rows'>
           {view.entries.map((entry) => (
             <li key={entry.id}>
-              <span><strong>{quote(entry.text)}</strong></span>
+              <span>
+                <strong>{quote(entry.text)}</strong>
+              </span>
             </li>
           ))}
         </ul>
@@ -939,7 +1133,7 @@ function Turn({
   if (phase === 'final-votes' && result) {
     return (
       <section className='card results-transition'>
-        <h1>Final votes</h1>
+        <h1 className='horizontal-center'>Final votes</h1>
         <ul className='rows'>
           {result.entries.map((entry) => {
             const voters = Object.entries(result.votes)
@@ -949,10 +1143,13 @@ function Turn({
               <li key={entry.id}>
                 <span>
                   <strong>{quote(entry.text)}</strong>
-                  {entry.disqualified && <small className='duplicate-label'> Duplicate</small>}
+                  {entry.disqualified && (
+                    <small className='duplicate-label'> Duplicate</small>
+                  )}
                   <small>
                     {name(entry.authorId)}
-                    {voters.length > 0 && ` · Voted for by ${voters.join(', ')}`}
+                    {voters.length > 0 &&
+                      ` · Voted for by ${voters.join(', ')}`}
                   </small>
                 </span>
                 <strong>{result.totals[entry.id]}</strong>
@@ -968,27 +1165,30 @@ function Turn({
     const scores = match?.scores ?? result.awards;
     return (
       <section className='card results-transition'>
-        <div className='phase'>
-          <h1>
-            {phase === 'complete'
-              ? 'Final standings'
-              : result.missed
-                ? 'No answer submitted'
-                : 'Scoring'}
-          </h1>
-          {view.deadline !== undefined && (
-            <Timer
-              key={`${view.deadline}:${online}`}
-              deadline={view.deadline}
-              duration={view.phaseDuration}
-              offset={offset}
-            />
-          )}
-        </div>
-        {progress && <p className='tag'>{progress}</p>}
+        <h1
+          className={
+            phase === 'scoring' && result.missed
+              ? 'horizontal-center'
+              : undefined
+          }
+        >
+          {phase === 'complete'
+            ? 'Final standings'
+            : result.missed
+              ? 'No answer submitted...'
+              : 'Scoring'}
+        </h1>
+        {view.deadline === undefined && progress && (
+          <p className='tag'>{progress}</p>
+        )}
         {phase === 'complete' && finish && <p role='status'>{finish}</p>}
-        {phase === 'complete' && result.missed && <p>No answer submitted.</p>}
+        {phase === 'complete' && result.missed && (
+          <p className='horizontal-center'>No answer submitted.</p>
+        )}
         {result.modifier && <ModifierCard modifier={result.modifier} />}
+        {phase === 'scoring' && result.bonusTurn && !outcome && (
+          <p role='status'>{name(view.answeringId!)} earned a bonus turn.</p>
+        )}
         <h2>Standings</h2>
         <Standings
           players={players}
@@ -1006,7 +1206,9 @@ function Turn({
         />
         {phase === 'complete' && endGame && (
           <div className='horizontal-center'>
-            <button type='button' disabled={!online} onClick={endGame}>End Game</button>
+            <button type='button' disabled={!online} onClick={endGame}>
+              End Game
+            </button>
           </div>
         )}
       </section>
@@ -1017,11 +1219,12 @@ function Turn({
     event.preventDefault();
     if (!online || (phase !== 'answering' && phase !== 'response')) return;
     const text = draft.trim();
-    const submission: Action = phase === 'answering'
-      ? { type: 'answer', phase, text }
-      : choice === 'support'
-        ? { type: 'support', phase }
-        : { type: 'challenge', phase, text };
+    const submission: Action =
+      phase === 'answering'
+        ? { type: 'answer', phase, text }
+        : choice === 'support'
+          ? { type: 'support', phase }
+          : { type: 'challenge', phase, text };
     const submittedText = 'text' in submission ? submission.text : '';
     if ('text' in submission && !submittedText) return;
     if (accepted?.type === submission.type && acceptedText === submittedText) {
@@ -1032,39 +1235,39 @@ function Turn({
   }
 
   return (
-    <section className={phase === 'answering' ? 'card turn-transition' : 'card'}>
-      {progress && <p className='tag'>{progress}</p>}
-      <div className='phase'>
-        <span className='tag'>
+    <section
+      className={phase === 'answering' ? 'card turn-transition' : 'card'}
+    >
+      {progress && (phase !== 'answering' || answering) && (
+        <p className='tag'>{progress}</p>
+      )}
+      {(phase !== 'answering' || answering) && (
+        <p className='tag'>
           {phase === 'response'
             ? 'Support or challenge'
             : phase === 'voting'
               ? 'Final vote'
-              : answering
-                ? 'Your turn'
-                : `${name(view.answeringId!)}’s turn`}
-        </span>
-        {view.deadline !== undefined && (
-          <Timer
-            key={`${view.deadline}:${online}`}
-            deadline={view.deadline}
-            duration={view.phaseDuration}
-            offset={offset}
-          />
-        )}
-      </div>
-      <h1 className='horizontal-center'>
-        {quote(view.prompt)}
-      </h1>
+              : 'Your turn'}
+        </p>
+      )}
+      <h1 className='horizontal-center'>{quote(view.prompt)}</h1>
       {view.modifier && <ModifierCard modifier={view.modifier} />}
-      {phase === 'response' && <blockquote>{quote(view.entries[0]?.text)}</blockquote>}
+      {phase === 'response' && (
+        <blockquote>{quote(view.entries[0]?.text)}</blockquote>
+      )}
       {showSubmission && (
-        <div>
+        <div className='horizontal-center'>
           <div role='status'>
             {showSubmission.type === 'support' ? (
               <h2 className='submitted-support'>You Support this answer.</h2>
             ) : (
-              <h2 className={showSubmission.type === 'challenge' ? 'submitted-challenge' : 'submitted-answer'}>
+              <h2
+                className={
+                  showSubmission.type === 'challenge'
+                    ? 'submitted-challenge'
+                    : 'submitted-answer'
+                }
+              >
                 {showSubmission.type === 'challenge' && 'Your Challenge: '}
                 {quote(acceptedText)}
               </h2>
@@ -1074,7 +1277,10 @@ function Turn({
             type='button'
             className='change-response'
             onClick={() => {
-              if (showSubmission.type === 'support' || showSubmission.type === 'challenge') {
+              if (
+                showSubmission.type === 'support' ||
+                showSubmission.type === 'challenge'
+              ) {
                 setChoice(showSubmission.type);
               }
               setDraft(acceptedText);
@@ -1085,61 +1291,62 @@ function Turn({
           </button>
         </div>
       )}
-      {!showSubmission && ((phase === 'answering' && answering) ||
-        (phase === 'response' && !answering)) && (
-        <form onSubmit={submit}>
-          {phase === 'response' && (
-            <fieldset
-              onKeyDown={(event) => {
-                if (
-                  event.key === 'Enter' &&
-                  !event.nativeEvent.isComposing &&
-                  event.target instanceof HTMLInputElement
-                ) {
-                  event.preventDefault();
-                  event.target.form?.requestSubmit();
-                }
-              }}
-            >
-              <legend>Your response</legend>
+      {!showSubmission &&
+        ((phase === 'answering' && answering) ||
+          (phase === 'response' && !answering)) && (
+          <form onSubmit={submit}>
+            {phase === 'response' && (
+              <fieldset
+                onKeyDown={(event) => {
+                  if (
+                    event.key === 'Enter' &&
+                    !event.nativeEvent.isComposing &&
+                    event.target instanceof HTMLInputElement
+                  ) {
+                    event.preventDefault();
+                    event.target.form?.requestSubmit();
+                  }
+                }}
+              >
+                <legend>Your response</legend>
+                <label>
+                  <input
+                    type='radio'
+                    name='response'
+                    checked={choice === 'support'}
+                    onChange={() => setChoice('support')}
+                  />{' '}
+                  Support
+                </label>
+                <label>
+                  <input
+                    type='radio'
+                    name='response'
+                    checked={choice === 'challenge'}
+                    onChange={() => setChoice('challenge')}
+                  />{' '}
+                  Challenge
+                </label>
+              </fieldset>
+            )}
+            {(phase === 'answering' || choice === 'challenge') && (
               <label>
+                {phase === 'answering' ? 'Your answer' : 'Challenge answer'}
                 <input
-                  type='radio'
-                  name='response'
-                  checked={choice === 'support'}
-                  onChange={() => setChoice('support')}
-                />{' '}
-                Support
+                  type='text'
+                  enterKeyHint='send'
+                  required
+                  maxLength={160}
+                  value={draft}
+                  onChange={(event) => setDraft(event.target.value)}
+                />
               </label>
-              <label>
-                <input
-                  type='radio'
-                  name='response'
-                  checked={choice === 'challenge'}
-                  onChange={() => setChoice('challenge')}
-                />{' '}
-                Challenge
-              </label>
-            </fieldset>
-          )}
-          {(phase === 'answering' || choice === 'challenge') && (
-            <label>
-              {phase === 'answering' ? 'Your answer' : 'Challenge answer'}
-              <input
-                type='text'
-                enterKeyHint='send'
-                required
-                maxLength={160}
-                value={draft}
-                onChange={(event) => setDraft(event.target.value)}
-              />
-            </label>
-          )}
-          <button disabled={!online}>
-            {phase === 'answering' ? 'Submit answer' : 'Submit response'}
-          </button>
-        </form>
-      )}
+            )}
+            <button disabled={!online}>
+              {phase === 'answering' ? 'Submit answer' : 'Submit response'}
+            </button>
+          </form>
+        )}
       {phase === 'voting' && (
         <>
           <p>
@@ -1147,16 +1354,30 @@ function Turn({
               ? 'Keep your vote or move it to another answer.'
               : 'Supporters are casting their final votes.'}
           </p>
-          {view.voteReturned && <p role='status'>Your vote returned to the original answer. You can move it again.</p>}
+          {view.voteReturned && (
+            <p role='status'>
+              Your vote returned to the original answer. You can move it again.
+            </p>
+          )}
           <ul className='rows vote-rows'>
             {view.entries.map((entry, index) => (
-              <li key={entry.id} className={entry.disqualified ? 'disqualified-answer' : undefined}>
+              <li
+                key={entry.id}
+                className={
+                  entry.disqualified ? 'disqualified-answer' : undefined
+                }
+              >
                 <span>
                   <strong>{quote(entry.text)}</strong>
                   {index === 0 && (
-                    <small className='original-answer-label'> Original answer</small>
+                    <small className='original-answer-label'>
+                      {' '}
+                      Original answer
+                    </small>
                   )}
-                  {entry.disqualified && <small className='duplicate-label'> Duplicate</small>}
+                  {entry.disqualified && (
+                    <small className='duplicate-label'> Duplicate</small>
+                  )}
                 </span>
                 {view.vote && !entry.disqualified && (
                   <button
@@ -1178,7 +1399,13 @@ function Turn({
               </li>
             ))}
           </ul>
-          {view.canFlagDuplicates && <DuplicateFlag entries={view.entries.slice(1)} online={online} send={send} />}
+          {view.canFlagDuplicates && (
+            <DuplicateFlag
+              entries={view.entries.slice(1)}
+              online={online}
+              send={send}
+            />
+          )}
         </>
       )}
     </section>

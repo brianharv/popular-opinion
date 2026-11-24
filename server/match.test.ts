@@ -45,3 +45,24 @@ test('the last round sends only players tied for the lead to a tiebreaker', () =
   match = recordTurn(match, { a: 5, b: 5, c: 4 })
   expect(match.outcome).toEqual({ type: 'tiebreaker', playerIds: ['a', 'b'] })
 })
+
+test('bonus turns chain after the final scheduled turn before checking standings', () => {
+  let match = createMatch({ type: 'rounds', rounds: 5 }, order)
+  for (let i = 0; i < 19; i++) match = recordTurn(match, {})
+  match = recordTurn(match, { a: 3, d: 1 }, true)
+  expect(match.outcome).toBeUndefined()
+  expect(nextAnswerer(match)).toBe('d')
+  match = recordTurn(match, { d: 1 }, true)
+  expect(match.outcome).toBeUndefined()
+  expect(nextAnswerer(match)).toBe('d')
+  match = recordTurn(match, { d: 2 })
+  expect(match.completedTurns).toBe(20)
+  expect(match.playedTurns).toBe(22)
+  expect(match.outcome).toEqual({ type: 'winner', playerIds: ['d'] })
+})
+
+test('a score-target outcome takes precedence over a bonus', () => {
+  const match = recordTurn(createMatch({ type: 'points', target: 50 }, order), { a: 58, b: 50 }, true)
+  expect(match.outcome).toEqual({ type: 'tiebreaker', playerIds: ['a', 'b'] })
+  expect(match.bonusAnswerer).toBeUndefined()
+})

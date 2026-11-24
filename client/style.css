@@ -1,4 +1,7 @@
 :root {
+  --turn-transition-time: 380ms;
+  --results-transition-time: 480ms;
+  --duplicate-transition-time: 520ms;
   color-scheme: light;
   color: #211c1b;
   background: #faf9f7;
@@ -15,6 +18,10 @@
   --tangerine: #a6450c;
   --strawberry: #9c263d;
   --display: 'Instrument Serif', 'Times New Roman', serif;
+}
+
+html:has(.top-with-timer) {
+  scrollbar-gutter: stable;
 }
 
 * {
@@ -103,6 +110,53 @@ h3 {
   color: var(--muted);
 }
 
+.hero .hero-tagline {
+  margin-top: 0.75em;
+}
+
+.tagline-correction {
+  position: relative;
+  display: inline-block;
+}
+
+.tagline-correction::before,
+.tagline-correction::after {
+  position: absolute;
+  inset: 54% -0.08em auto;
+  height: 2px;
+  border-radius: 50%;
+  background: var(--strawberry);
+  content: '';
+}
+
+.tagline-correction::before {
+  transform: rotate(15deg);
+}
+
+.tagline-correction::after {
+  transform: rotate(-12deg);
+}
+
+.tagline-ink {
+  position: absolute;
+  inset: auto 0 calc(94% - 4px);
+  color: #80182e;
+  font:
+    700 1.3em/1 'Caveat',
+    'Segoe Print',
+    cursive;
+  letter-spacing: 0.025em;
+  transform: rotate(-6deg);
+}
+
+.tagline-reading {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
 .tag,
 .you {
   font-weight: 650;
@@ -120,35 +174,96 @@ h3 {
   padding: 0.2rem 0.65rem;
 }
 
-.timer {
-  flex: none;
+.header-timer {
+  position: relative;
+  grid-column: 2;
+  inline-size: 24px;
+  block-size: 24px;
+  --timer-transition-time: var(--turn-transition-time);
 }
 
-.preview-wait-timer {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 0.75rem;
+.header-timer[data-transition='results'] {
+  --timer-transition-time: var(--results-transition-time);
+}
+
+.header-timer[data-transition='duplicate'] {
+  --timer-transition-time: var(--duplicate-transition-time);
+}
+
+.header-timer > * {
+  position: absolute;
+  inset: 0;
+}
+
+.leaving-timer {
+  display: none;
 }
 
 .card {
   background: var(--paper);
   border: 1px solid var(--edge);
   box-shadow: 0 0.65rem 2rem #39302b0b;
-  padding: clamp(1rem, 4vw, 2rem);
+  padding: clamp(0.5rem, 2vw, 1rem);
   border-radius: 1rem;
+}
+
+dialog.card {
+  padding: clamp(1rem, 4vw, 2rem);
 }
 
 @media (prefers-reduced-motion: no-preference) {
   .turn-transition {
-    animation: turn-enter 380ms ease-in-out both;
+    animation: turn-enter var(--turn-transition-time) ease-in-out both;
   }
 
   .results-transition {
-    animation: results-enter 480ms ease-in-out both;
+    animation: results-enter var(--results-transition-time) ease-in-out both;
   }
 
   .duplicate-transition {
-    animation: duplicate-enter 520ms ease-out both;
+    animation: duplicate-enter var(--duplicate-transition-time) ease-out both;
+  }
+
+  .header-timer .timer {
+    animation: timer-enter var(--timer-transition-time) ease-in-out both;
+  }
+
+  .header-timer .timer[data-after-fade] {
+    animation-name: timer-enter-after-fade;
+  }
+
+  .header-timer .leaving-timer {
+    display: block;
+    animation: timer-leave var(--timer-transition-time) ease-in-out both;
+  }
+}
+
+@keyframes timer-enter {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes timer-enter-after-fade {
+  0%,
+  50% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes timer-leave {
+  0% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
   }
 }
 
@@ -195,7 +310,13 @@ h3 {
 }
 
 .phase {
+  align-items: flex-start;
+  text-align: start;
   margin-bottom: 1rem;
+}
+
+.phase h1 {
+  margin-bottom: 0;
 }
 
 .top {
@@ -204,6 +325,15 @@ h3 {
   margin-bottom: 0.5rem;
   padding: 0 0.15rem 0.25rem;
   border-bottom: 1px solid var(--edge);
+}
+
+.top-with-timer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 24px minmax(0, 1fr);
+}
+
+.top-with-timer > .room-menu-toggle {
+  grid-column: 3;
 }
 
 .top a {
@@ -283,6 +413,18 @@ button.outline.room-menu-toggle {
 
 .room-menu-close {
   justify-self: center;
+}
+
+.end-game-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.confirm-end-game {
+  background: var(--strawberry);
+  border-color: var(--strawberry);
+  color: #fff;
 }
 
 .room-loading {
@@ -570,7 +712,7 @@ li {
 }
 
 .waiting-room {
-  padding-block: clamp(0.85rem, 3vw, 1.5rem);
+  padding-block: clamp(0.425rem, 1.5vw, 0.75rem);
 }
 
 .waiting-room h1 {
@@ -656,6 +798,11 @@ li {
 
 .horizontal-center {
   text-align: center;
+}
+
+.narrow-line {
+  max-width: 3rem;
+  min-width: 2rem;
 }
 
 .score {

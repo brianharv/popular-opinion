@@ -7,11 +7,13 @@ import type {
   Result,
   RoomView
 } from '../shared/protocol';
+import { modifiers, scoreModifier } from './modifiers';
 
 export const durations = {
-  'modifier-preview': 5_000,
+  'turn-intro': 3_000,
+  'modifier-preview': 10_000,
   'prompt-preview': 5_000,
-  answering: 30_000,
+  answering: 20_000,
   response: 30_000,
   voting: 15_000,
   'duplicate-review': 10_000,
@@ -19,12 +21,9 @@ export const durations = {
   'final-votes': 5_000,
   scoring: 10_000
 };
-export const fixtureDraw = (prompt = 'Best vacation destination') => ({
+export const fixtureDraw = (prompt = 'Best vacation destination'): { prompt: string; modifier: Modifier } => ({
   prompt,
-  modifier: {
-    name: 'The Troll',
-    rule: 'Earn 2 points per challenger. Earn an additional 5 points if you retain zero votes. Triple your score this round if everyone challenges. Lose 5 points if nobody challenges. Challengers earn no points.'
-  }
+  modifier: modifiers.find(({ name }) => name === 'The Troll')!
 });
 
 type Turn = {
@@ -66,8 +65,8 @@ export function createTurn(
     ...draw(),
     players,
     answeringId,
-    phase: 'modifier-preview',
-    deadline: clock() + timing['modifier-preview'],
+    phase: 'turn-intro',
+    deadline: clock() + timing['turn-intro'],
     challenges: [],
     responses: {},
     votes: {},
@@ -192,17 +191,11 @@ function score(turn: Turn, now: number): Turn {
       allocations.filter((id) => id === entry.id).length
     ])
   );
-  const awards = Object.fromEntries(
-    turn.players.map((player) => [player.id, 0])
-  );
-  if (turn.original) {
-    const challengers = turn.challenges.length;
-    const retained = totals[turn.original.id];
-    const subtotal =
-      2 * challengers + (retained === 0 ? 5 : 0) - (challengers === 0 ? 5 : 0);
-    awards[turn.answeringId] =
-      subtotal * (challengers === turn.players.length - 1 ? 3 : 1);
-  }
+  const playerIds = turn.players.map(({ id }) => id);
+  const card = modifiers.find(({ name }) => name === turn.modifier.name);
+  const { awards, bonusTurn } = turn.original && card
+    ? scoreModifier(card.name, turn.answeringId, playerIds, turn.challenges, totals, totals[turn.original.id])
+    : { awards: Object.fromEntries(playerIds.map(id => [id, 0])), bonusTurn: false };
   const phase = turn.original ? 'final-votes' : 'scoring';
   return {
     ...turn,
@@ -211,6 +204,7 @@ function score(turn: Turn, now: number): Turn {
     result: {
       entries,
       awards,
+      bonusTurn: bonusTurn || undefined,
       totals,
       votes: turn.votes,
       missed: !turn.original,
@@ -222,6 +216,12 @@ function score(turn: Turn, now: number): Turn {
 export function advance(turn: Turn, now: number): Turn {
   if (turn.deadline === undefined || now < turn.deadline) return turn;
   switch (turn.phase) {
+    case 'turn-intro':
+      return {
+        ...turn,
+        phase: 'modifier-preview',
+        deadline: now + turn.durations['modifier-preview']
+      };
     case 'modifier-preview':
       return {
         ...turn,
@@ -299,7 +299,7 @@ export function view(
   const { phase, deadline, answeringId, prompt, original, challenges, result } =
     turn;
   const answering = answeringId === you;
-  const previewing = phase === 'modifier-preview' || phase === 'prompt-preview';
+  const previewing = phase === 'turn-intro' || phase === 'modifier-preview' || phase === 'prompt-preview';
   const entries = turn.review ? challenges.filter(({ id }) => turn.review!.answerIds.includes(id))
     : !original ? []
     : phase === 'voting' ? [original, ...challenges]
@@ -310,18 +310,20 @@ export function view(
     phase,
     deadline,
     answeringId,
-    prompt: previewing && (!answering || phase === 'modifier-preview') ? undefined : prompt,
+    prompt: previewing && (!answering || phase !== 'prompt-preview') ? undefined : prompt,
     result,
     turnId: turn.id,
     phaseDuration: phase === 'complete' ? undefined : turn.durations[phase],
     previewWait:
       !answering && previewing && deadline !== undefined
         ? {
-            deadline: deadline + (phase === 'modifier-preview' ? turn.durations['prompt-preview'] : 0),
-            duration: turn.durations['modifier-preview'] + turn.durations['prompt-preview']
+            deadline: deadline
+              + (phase === 'turn-intro' ? turn.durations['modifier-preview'] : 0)
+              + (phase !== 'prompt-preview' ? turn.durations['prompt-preview'] : 0),
+            duration: turn.durations['turn-intro'] + turn.durations['modifier-preview'] + turn.durations['prompt-preview']
           }
         : undefined,
-    modifier: !result && answering && phase !== 'prompt-preview' ? turn.modifier : undefined,
+    modifier: !result && answering && phase !== 'turn-intro' && phase !== 'prompt-preview' ? turn.modifier : undefined,
     entries: entries.map(({ id, text, disqualified }) => ({ id, text, disqualified })),
     canFlagDuplicates: phase === 'voting' && canFlagDuplicates(turn, you),
     duplicateReview: turn.review && {

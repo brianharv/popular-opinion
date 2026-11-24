@@ -48,7 +48,7 @@ export const modifiers = [
   },
   {
     name: 'The Ambien Defense',
-    rule: '2 points per support vote plus 1 point per retained vote. Take a bonus unless you score more points than every other player.'
+    rule: '2 points per support vote plus 1 point per retained vote. Take a bonus turn unless you score more points than every other player.'
   }
 ] as const;
 

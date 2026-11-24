@@ -1,17 +1,17 @@
 import { expect, test } from 'vitest'
 import { fixtureDraw } from './game'
-import { modifiers } from './modifiers'
+import { personas } from './personas'
 import { createApp } from './app'
 import { localDatabase } from './storage'
 import type { Credential, RoomView } from '../shared/protocol'
 
 const url = process.env.TEST_DATABASE_URL ?? localDatabase
-const timing = { 'turn-intro': 100, 'modifier-preview': 150, 'prompt-preview': 150, answering: 1800, response: 500, voting: 500, 'duplicate-review': 1000, 'duplicate-result': 400, 'final-votes': 10_000, scoring: 10_000 }
+const timing = { 'turn-intro': 100, 'persona-preview': 150, 'prompt-preview': 150, answering: 1800, response: 500, voting: 500, 'duplicate-review': 1000, 'duplicate-result': 400, 'final-votes': 10_000, scoring: 10_000 }
 
 test('a real PostgreSQL checkpoint replays an interrupted turn and preserves committed points once', async () => {
-  let modifier = fixtureDraw().modifier
-  const drawModifier = () => modifier
-  let app = await createApp(url, timing, false, drawModifier)
+  let persona = fixtureDraw().persona
+  const drawPersona = () => persona
+  let app = await createApp(url, timing, false, drawPersona)
   let address = await app.listen({ host: '127.0.0.1', port: 0 })
   const sockets: WebSocket[] = []
   try {
@@ -39,7 +39,7 @@ test('a real PostgreSQL checkpoint replays an interrupted turn and preserves com
     async function restart() {
       for (const socket of sockets.splice(0)) socket.close()
       await app.close()
-      app = await createApp(url, timing, false, drawModifier)
+      app = await createApp(url, timing, false, drawPersona)
       address = await app.listen({ host: '127.0.0.1', port: 0 })
     }
 
@@ -74,7 +74,7 @@ test('a real PostgreSQL checkpoint replays an interrupted turn and preserves com
     await expect.poll(() => answerer.show().phase).toBe('final-votes')
     const result = answerer.show().result!
     expect(result.awards[answeringId!]).toBe(33)
-    modifier = modifiers.find(card => card.name === 'Double Down')!
+    persona = personas.find(card => card.name === 'The Double Down')!
     await restart()
     const restored = await connect(host)
     await expect.poll(() => restored.show().phase).toBe('answering')
@@ -131,7 +131,7 @@ test('a real PostgreSQL checkpoint replays an interrupted turn and preserves com
 }, 15_000)
 
 test('the thirteenth seat is rejected', async () => {
-  const app = await createApp(url, timing, false, () => fixtureDraw().modifier)
+  const app = await createApp(url, timing, false, () => fixtureDraw().persona)
   try {
     const room = (await app.inject({ method: 'POST', url: '/api/rooms', payload: { name: 'Host' } })).json<Credential>()
     for (let seat = 2; seat <= 13; seat++) {

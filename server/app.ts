@@ -8,8 +8,8 @@ import { z } from 'zod'
 import { actionSchema, nameSchema } from '../shared/protocol'
 import { maximumPlayers, minimumPlayers } from '../shared/match-options'
 import { action, advance, createTurn, durations, view } from './game'
-import { modifiers } from './modifiers'
-import type { Modifier } from '../shared/protocol'
+import { personas } from './personas'
+import type { Persona } from '../shared/protocol'
 import { createMatch, nextAnswerer, recordTurn } from './match'
 import { prompts, shuffle } from './prompts'
 import { openStorage, type Checkpoint, type Seat } from './storage'
@@ -37,7 +37,7 @@ export async function createApp(
   url: string,
   timing = durations,
   serveClient = false,
-  drawModifier: () => Modifier = () => modifiers[randomInt(modifiers.length)]
+  drawPersona: () => Persona = () => personas[randomInt(personas.length)]
 ) {
   const storage = await openStorage(url)
   const app = Fastify()
@@ -102,7 +102,7 @@ export async function createApp(
       room.isBonusTurn = Boolean(match.bonusAnswerer)
       room.scheduledTurnNumber = match.completedTurns + (room.isBonusTurn ? 0 : 1)
     }
-    room.turn = createTurn(roster(room), answeringId, Date.now, () => ({ prompt, modifier: drawModifier() }), randomUUID, timing)
+    room.turn = createTurn(roster(room), answeringId, Date.now, () => ({ prompt, persona: drawPersona() }), randomUUID, timing)
   }
 
   function schedule(room: Room, retry = false) {

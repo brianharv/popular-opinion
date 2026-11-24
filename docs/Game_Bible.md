@@ -163,7 +163,7 @@ If everyone challenges, go straight to the scoring view, apply the same awards, 
 
 - Preserve each seat's score, screen name, and place in the rotation. A returning player reclaims their seat using a browser-held credential. The room code alone does not identify a seat. Leaving frees a player to join or create another room. The roster stays fixed even if connected devices drop below four.
 - Ordinary disconnects leave the room clock running. Apply the normal deadlines and defaults. Reconnect into the current permitted view with the latest accepted action.
-- Only the host can permanently End Match, and only after explicit confirmation. A host disconnect does not end the match. Close automatically after 10 minutes with every player disconnected.
+- Only the host can permanently end the match. Require confirmation for End Game during play. On final standings, End Game closes the match immediately and Leave Game returns a guest home. A host disconnect does not end the match. Close automatically after 10 minutes with every player disconnected.
 - Persist a checkpoint before the current turn draws cards. If interrupted before scoring commits, restart the turn with a new draw and fresh timers. A new draw can produce different cards. Preserve earlier scores and discard interrupted actions and uncommitted effects.
 - Commit scoring and the next state together in PostgreSQL. After a committed result, restart into the saved next scheduled turn, bonus turn, tiebreaker, or victory, even if the scoring presentation was still visible. Never award points twice. Use the same boundary for tiebreakers. An uncommitted tiebreaker restarts with the same contenders and a fresh Prompt.
 

@@ -31,6 +31,7 @@ import type {
   ServerMessage
 } from '../shared/protocol';
 import { personaSubtitles } from './persona-subtitles';
+import { WaitingHints } from './waiting-hints';
 import './style.css';
 
 const seatKey = (code: string) => `popular-opinion:${code}`;
@@ -49,10 +50,19 @@ function readSeatToken(code: string) {
 
 function Home() {
   const navigate = useNavigate();
-  const { state } = useLocation();
+  const { state, key } = useLocation();
+  const [dismissedToast, setDismissedToast] = useState<string>();
+  const showGameEndedToast =
+    state?.gameEnded === true && dismissedToast !== key;
   const [mode, setMode] = useState<'create' | 'join'>();
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    if (!showGameEndedToast) return;
+    const timeout = setTimeout(() => setDismissedToast(key), 3000);
+    return () => clearTimeout(timeout);
+  }, [key, showGameEndedToast]);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -93,7 +103,11 @@ function Home() {
 
   return (
     <>
-      {state?.gameEnded === true && <p role='status'>The game has ended.</p>}
+      {showGameEndedToast && (
+        <p className='home-toast' role='status'>
+          The game was ended by the host.
+        </p>
+      )}
       <section className='hero'>
         <span className='tag'>A party game for 4–12 players</span>
         <h1>
@@ -321,16 +335,17 @@ function RoomMenu({
   code,
   error,
   endGame,
+  leaveGame,
   online
 }: {
   code: string;
   error: string;
   endGame?: () => void;
+  leaveGame: () => void;
   online: boolean;
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const dialogId = useId();
-  const navigate = useNavigate();
 
   return (
     <>
@@ -369,7 +384,7 @@ function RoomMenu({
               End Game
             </button>
           ) : (
-            <button type='button' onClick={() => navigate('/')}>
+            <button type='button' onClick={leaveGame}>
               Leave Game
             </button>
           )}
@@ -481,13 +496,17 @@ function Room() {
     endGameDialog.current?.showModal();
   }
 
-  function confirmEndGame() {
+  function endGame() {
     if (socket.current?.readyState === WebSocket.OPEN) {
       socket.current.send(
         JSON.stringify({ type: 'end-game', confirmed: true })
       );
       endGameDialog.current?.close();
     }
+  }
+
+  function leaveGame() {
+    navigate('/');
   }
 
   const connecting = !online && !error;
@@ -502,6 +521,10 @@ function Room() {
       ? { deadline: view.deadline, duration: view.phaseDuration }
       : undefined);
   const screen = view?.previewWait ? 'preview-wait' : view?.phase;
+  const isWaiting =
+    view &&
+    (view.previewWait ||
+      (view.phase === 'answering' && view.you !== view.answeringId));
   const screenKey = `${view?.turnId ?? 'room'}:${screen}`;
   return (
     <>
@@ -541,6 +564,7 @@ function Room() {
               error={error}
               online={online}
               endGame={view.hostId === view.you ? requestEndGame : undefined}
+              leaveGame={leaveGame}
             />
           )}
         </header>
@@ -561,32 +585,37 @@ function Room() {
           view={view}
           send={send}
           online={online}
-          endGame={view.hostId === view.you ? requestEndGame : undefined}
+          endGame={view.hostId === view.you ? endGame : undefined}
+          leaveGame={leaveGame}
           offset={offset.current}
         />
       )}
-      {view && view.hostId === view.you && view.phase !== 'lobby' && (
-        <dialog
-          ref={endGameDialog}
-          className='card room-menu'
-          aria-labelledby={endGameTitle}
-        >
-          <h2 id={endGameTitle}>End the game for everyone?</h2>
-          <form method='dialog' className='end-game-actions'>
-            <button className='outline' autoFocus>
-              Cancel
-            </button>
-            <button
-              type='button'
-              className='confirm-end-game'
-              disabled={!online}
-              onClick={confirmEndGame}
-            >
-              End Game
-            </button>
-          </form>
-        </dialog>
-      )}
+      {isWaiting && <WaitingHints key={view.turnId} />}
+      {view &&
+        view.hostId === view.you &&
+        view.phase !== 'lobby' &&
+        view.phase !== 'complete' && (
+          <dialog
+            ref={endGameDialog}
+            className='card room-menu'
+            aria-labelledby={endGameTitle}
+          >
+            <h2 id={endGameTitle}>End the game for everyone?</h2>
+            <form method='dialog' className='end-game-actions'>
+              <button className='outline' autoFocus>
+                Cancel
+              </button>
+              <button
+                type='button'
+                className='confirm-end-game'
+                disabled={!online}
+                onClick={endGame}
+              >
+                End Game
+              </button>
+            </form>
+          </dialog>
+        )}
       {connecting && <ConnectingToRoom />}
     </>
   );
@@ -785,8 +814,8 @@ function PersonaCard({ persona }: { persona: Persona }) {
 }
 
 const scoringLeadIn = 300;
-const scoreTransferDuration = 400;
-const scoreTransferPause = 200;
+const scoreTransferDuration = 520;
+const scoreTransferPause = 300;
 
 function Standings({
   players,
@@ -964,13 +993,15 @@ function Turn({
   send,
   online,
   offset,
-  endGame
+  endGame,
+  leaveGame
 }: {
   view: RoomView;
   send: (action: Action) => boolean;
   online: boolean;
   offset: number;
   endGame?: () => void;
+  leaveGame: () => void;
 }) {
   const { players, phase, you, result, match, accepted } = view;
   const [draft, setDraft] = useState('');
@@ -1215,10 +1246,14 @@ function Turn({
           }
           offset={offset}
         />
-        {phase === 'complete' && endGame && (
+        {phase === 'complete' && (
           <div className='horizontal-center'>
-            <button type='button' disabled={!online} onClick={endGame}>
-              End Game
+            <button
+              type='button'
+              disabled={Boolean(endGame) && !online}
+              onClick={endGame ?? leaveGame}
+            >
+              {endGame ? 'End Game' : 'Leave Game'}
             </button>
           </div>
         )}

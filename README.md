@@ -33,14 +33,6 @@ HOST=0.0.0.0 pnpm start
 
 Connect the devices to the same Wi-Fi. Open `http://<host-LAN-IP>:3180` on each device, substituting the computer's local Wi-Fi address. On macOS, find it under **System Settings → Wi-Fi → Details → TCP/IP**. Allow incoming connections on port 3180 if the host firewall prompts you. Create a room on one device and enter its code on the other three devices or isolated browser profiles. Use the same URL on a given device so its browser can find the saved seat.
 
-## Render playtest
-
-[render.yaml](./render.yaml) defines one free Node web service and one free PostgreSQL 16 database in Oregon. Render supplies the database URL over its private network. The service uses Render’s `PORT` and serves the frontend, API, and WebSockets from one HTTPS origin. [Render Blueprint reference](https://render.com/docs/blueprint-spec)
-
-Near the first playtest, commit and push the Blueprint with the app, then choose **New → Blueprint** in Render and connect the repository and branch. Deploy from the Render dashboard between matches. [Create a Blueprint](https://render.com/docs/infrastructure-as-code)
-
-Once the service is live, check `/healthz`, then use four separate browser profiles on the HTTPS URL to create a room, join, start a game, and reconnect during a turn. The free database expires 30 days after creation. Review upgrading around day 25 and make that change between matches. [Render free tier](https://render.com/docs/free) · [Render WebSockets](https://render.com/docs/websocket)
-
 ## Checks
 
 ```sh

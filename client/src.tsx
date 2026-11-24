@@ -122,12 +122,50 @@ function Home() {
         </p>
       </section>
       <section>
+        <div className='home-form-slot'>
+          {mode && (
+            <form className='card home-setup-form' key={mode} onSubmit={submit}>
+              {mode === 'join' && (
+                <label>
+                  Room code
+                  <input
+                    name='code'
+                    autoFocus
+                    required
+                    maxLength={8}
+                    autoCapitalize='characters'
+                  />
+                </label>
+              )}
+              <label>
+                Screen name
+                <input
+                  name='name'
+                  autoFocus={mode === 'create'}
+                  required
+                  maxLength={24}
+                  autoComplete='nickname'
+                />
+              </label>
+              <button disabled={busy}>
+                {mode === 'create' ? 'Create room' : 'Join room'}
+              </button>
+            </form>
+          )}
+          {error && (
+            <p className='card' role='alert'>
+              {error}
+            </p>
+          )}
+        </div>
         <div className='home-actions'>
           <button
             className='home-action'
             aria-pressed={mode === 'create'}
             onClick={() => {
-              setMode('create');
+              setMode((current) =>
+                current === 'create' ? undefined : 'create'
+              );
               setError('');
             }}
           >
@@ -140,7 +178,7 @@ function Home() {
             className='home-action'
             aria-pressed={mode === 'join'}
             onClick={() => {
-              setMode('join');
+              setMode((current) => (current === 'join' ? undefined : 'join'));
               setError('');
             }}
           >
@@ -156,38 +194,6 @@ function Home() {
             <span className='action-label'>How to Play</span>
           </Link>
         </div>
-        {mode && (
-          <form className='card' key={mode} onSubmit={submit}>
-            {mode === 'join' && (
-              <label>
-                Room code
-                <input
-                  name='code'
-                  required
-                  maxLength={8}
-                  autoCapitalize='characters'
-                />
-              </label>
-            )}
-            <label>
-              Screen name
-              <input
-                name='name'
-                required
-                maxLength={24}
-                autoComplete='nickname'
-              />
-            </label>
-            <button disabled={busy}>
-              {mode === 'create' ? 'Create room' : 'Join room'}
-            </button>
-          </form>
-        )}
-        {error && (
-          <p className='card' role='alert'>
-            {error}
-          </p>
-        )}
       </section>
     </>
   );
@@ -199,10 +205,6 @@ function HowToPlay() {
       <h1>How to Play</h1>
       <ul>
         <li>
-          Gather 4–12 players, choose "Create Game", and share your room code
-          with your friends.
-        </li>
-        <li>
           Each turn, one player tries to score as many points as possible by
           answering a <strong>prompt</strong> and using their secret{' '}
           <strong>persona</strong>.
@@ -212,11 +214,12 @@ function HowToPlay() {
           <strong>challenge</strong> with an answer of their own.
         </li>
         <li>
-          <strong>Supporters</strong> can keep their vote on the original answer
-          or move it to a challenger.
+          Next, the <strong>supporters</strong> choose to keep their vote in
+          support of the original answer or to move it to a challenger.
         </li>
         <li>
-          When time expires, everyone sees the votes, persona, and points.
+          When time expires, everyone sees the votes, persona, and the points
+          are tallied.
         </li>
       </ul>
       <h2>Scoring</h2>
@@ -227,9 +230,9 @@ function HowToPlay() {
           supporters, other times you're rewarded for being divisive.
         </li>
         <li>
-          <strong>Challengers</strong> gain 2 points for each supporting vote
-          they steal and gain 2x points if they end the round with the most
-          votes.
+          By default, <strong>challengers</strong> gain 2 points for each
+          supporting vote they steal and gain 2x points if they end the round
+          with the most votes.
         </li>
         <li>
           If the initial answer gets <strong>no supporters</strong>, the round
@@ -238,7 +241,7 @@ function HowToPlay() {
       </ul>
       <hr className='horizontal-center narrow-line'></hr>
       <h3 className='horizontal-center heavier-text'>
-        The persona changes the rules each turn. What it says goes, so pay
+        But remember, the persona can change any rule. What it says goes, so pay
         attention.
       </h3>
       <Link to='/'>Back to home</Link>
@@ -879,10 +882,7 @@ function Standings({
             key={player.id}
             className={player.id === you ? 'your-row' : undefined}
           >
-            <span>
-              {player.name}{' '}
-              {player.id === you && <span className='you'>You</span>}
-            </span>
+            <span>{player.name}</span>
             <span className='score'>
               {showChange && (
                 <span
@@ -1089,7 +1089,8 @@ function Turn({
   if (
     phase === 'turn-intro' ||
     phase === 'persona-preview' ||
-    phase === 'prompt-preview'
+    phase === 'prompt-preview' ||
+    (phase === 'answering' && !answering)
   ) {
     return (
       <div className='round-preview'>
@@ -1099,7 +1100,9 @@ function Turn({
           ) : phase === 'persona-preview' && view.persona ? (
             <PersonaCard persona={view.persona} />
           ) : (
-            <h1 className='horizontal-center'>{quote(view.prompt)}</h1>
+            <h1 className='gameplay-prompt horizontal-center'>
+              {quote(view.prompt)}
+            </h1>
           )}
         </section>
       </div>
@@ -1284,19 +1287,19 @@ function Turn({
     <section
       className={phase === 'answering' ? 'card turn-transition' : 'card'}
     >
-      {progress && (phase !== 'answering' || answering) && (
-        <p className='tag'>{progress}</p>
-      )}
-      {(phase !== 'answering' || answering) && (
-        <p className='tag'>
+      <div className='phase'>
+        {progress && <span className='tag'>{progress}</span>}
+        <span className='tag phase-label'>
           {phase === 'response'
             ? 'Support or challenge'
             : phase === 'voting'
               ? 'Final vote'
               : 'Your turn'}
-        </p>
-      )}
-      <h1 className='horizontal-center'>{quote(view.prompt)}</h1>
+        </span>
+      </div>
+      <h1 className='gameplay-prompt horizontal-center'>
+        {quote(view.prompt)}
+      </h1>
       {view.persona && <PersonaCard persona={view.persona} />}
       {phase === 'response' && (
         <blockquote className='horizontal-center'>
@@ -1345,6 +1348,7 @@ function Turn({
           <form onSubmit={submit}>
             {phase === 'response' && (
               <fieldset
+                className='response-choices'
                 onKeyDown={(event) => {
                   if (
                     event.key === 'Enter' &&
@@ -1357,7 +1361,7 @@ function Turn({
                 }}
               >
                 <legend>Your response</legend>
-                <label>
+                <label className='support-choice'>
                   <input
                     type='radio'
                     name='response'
@@ -1366,7 +1370,7 @@ function Turn({
                   />{' '}
                   Support
                 </label>
-                <label>
+                <label className='challenge-choice'>
                   <input
                     type='radio'
                     name='response'

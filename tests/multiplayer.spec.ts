@@ -294,55 +294,109 @@ test('scoring transfers each award in sequence with a pause between rows', async
     localStorage.getItem(`public-opinion:${roomCode}`)
   ], code)).toEqual(['saved-seat', null])
 
-  await page.clock.runFor(500)
+  await page.clock.runFor(575)
   await expect(scores).toHaveText(['+515 pts', '+015 pts', '-820 pts'])
-  await page.clock.runFor(375)
+  await page.clock.runFor(525)
   await expect(scores).toHaveText(['20 pts', '+015 pts', '-820 pts'])
   await page.clock.runFor(25)
   await expect(scores).toHaveText(['20 pts', '15 pts', '-820 pts'])
-  await page.clock.runFor(200)
+  await page.clock.runFor(300)
   await expect(scores).toHaveText(['20 pts', '15 pts', '-820 pts'])
-  await page.clock.runFor(200)
+  await page.clock.runFor(275)
   await expect(scores).toHaveText(['20 pts', '15 pts', '-416 pts'])
-  await page.clock.runFor(200)
+  await page.clock.runFor(250)
   await expect(scores).toHaveText(['20 pts', '15 pts', '12 pts'])
   await expect(changes).toHaveCount(0)
 })
 
-test('the host ends the game from the final standings', async ({ page }) => {
+for (const seat of ['host', 'guest']) {
+  test(`the ${seat} can exit from the final standings`, async ({ page }) => {
+    const code = 'AABBCCDD'
+    const token = `${seat}-seat`
+    await page.addInitScript(({ code, token }) => {
+      localStorage.setItem(`popular-opinion:${code}`, token)
+    }, { code, token })
+    await page.routeWebSocket('**/ws', ws => {
+      ws.onMessage(message => {
+        const input = JSON.parse(message.toString())
+        if (input.type === 'end-game') {
+          expect(seat).toBe('host')
+          expect(input).toEqual({ type: 'end-game', confirmed: true })
+          ws.send(JSON.stringify({ ended: true }))
+          return
+        }
+        expect(input).toEqual({ code, token })
+        ws.send(JSON.stringify({ view: {
+          code, you: seat, hostId: 'host', phase: 'complete',
+          players: [{ id: 'host', name: 'Host' }, { id: 'guest', name: 'Guest' }],
+          serverTime: Date.now(), entries: [],
+          result: { missed: false, entries: [], votes: {}, totals: {}, awards: { host: 9, guest: 0 } }
+        } } satisfies ServerMessage))
+      })
+    })
+    await page.goto(`/room/${code}`)
+    await expect(page.getByRole('heading', { name: 'Final standings' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Open room menu' })).toHaveCount(0)
+    const exit = page.getByRole('button', { name: seat === 'host' ? 'End Game' : 'Leave Game' })
+    await expect(exit).toBeVisible()
+    await page.clock.install()
+    await exit.click()
+    await expect(page).toHaveURL(/\/$/)
+    await expect(page.getByRole('dialog')).toHaveCount(0)
+
+    const toast = page.getByRole('status').filter({ hasText: 'The game has ended.' })
+    if (seat === 'host') {
+      await expect(toast).toBeVisible()
+      await expect(toast).toHaveCSS('position', 'fixed')
+      await page.clock.runFor(3000)
+      await expect(toast).toHaveCount(0)
+    } else {
+      await expect(toast).toHaveCount(0)
+      expect(await page.evaluate(roomCode => localStorage.getItem(`popular-opinion:${roomCode}`), code)).toBe(token)
+    }
+  })
+}
+
+test('waiting hints wrap in order and keep their place when the prompt appears', async ({ page }) => {
   const code = 'AABBCCDD'
   await page.addInitScript(roomCode => {
-    localStorage.setItem(`popular-opinion:${roomCode}`, 'host-seat')
+    localStorage.setItem(`popular-opinion:${roomCode}`, 'waiting-seat')
+    Math.random = () => 0.99
   }, code)
+  let showPhase!: (phase: 'persona-preview' | 'answering' | 'response') => void
   await page.routeWebSocket('**/ws', ws => {
-    ws.onMessage(message => {
-      const input = JSON.parse(message.toString())
-      if (input.type === 'end-game') {
-        expect(input).toEqual({ type: 'end-game', confirmed: true })
-        ws.send(JSON.stringify({ ended: true }))
-        return
-      }
-      expect(input).toEqual({ code, token: 'host-seat' })
+    showPhase = phase => {
+      const now = Date.now()
       ws.send(JSON.stringify({ view: {
-        code, you: 'host', hostId: 'host', phase: 'complete',
-        players: [{ id: 'host', name: 'Host' }],
-        serverTime: Date.now(), entries: [],
-        result: { missed: false, entries: [], votes: {}, totals: {}, awards: { host: 9 } }
+        code, you: 'b', hostId: 'a', phase, answeringId: 'a', turnId: 'turn-one',
+        players: [{ id: 'a', name: 'Alice' }, { id: 'b', name: 'Bea' }],
+        serverTime: now, deadline: now + 10_000, phaseDuration: 10_000, entries: [],
+        previewWait: phase === 'persona-preview' ? { deadline: now + 10_000, duration: 10_000 } : undefined,
+        prompt: phase === 'persona-preview' ? undefined : 'Best vacation destination'
       } } satisfies ServerMessage))
-    })
+    }
+    ws.onMessage(() => showPhase('persona-preview'))
   })
   await page.goto(`/room/${code}`)
-  await expect(page.getByRole('heading', { name: 'Final standings' })).toBeVisible()
-  await expect(page.getByRole('button', { name: 'Open room menu' })).toHaveCount(0)
-  const endGame = page.getByRole('button', { name: 'End Game' })
-  await expect(endGame).toBeVisible()
-  await endGame.click()
-  const confirmation = page.getByRole('dialog', { name: 'End the game for everyone?' })
-  const confirmButton = confirmation.getByRole('button', { name: 'End Game' })
-  await expect(confirmButton).toHaveCSS('background-color', 'rgb(156, 38, 61)')
-  await expect(confirmButton).toHaveCSS('color', 'rgb(255, 255, 255)')
-  await confirmButton.click()
-  await expect(page.getByText('The game has ended.')).toBeVisible()
+  const hint = page.locator('.waiting-hints')
+  const visibleHint = hint.locator('[aria-live]')
+  const waitingCard = page.locator('.round-preview .card')
+  await expect(visibleHint).toContainText('If you lose connection, rejoin with the room code')
+  const waitingCardTop = await waitingCard.evaluate(async card => {
+    await Promise.all(card.getAnimations().map(animation => animation.finished))
+    return card.getBoundingClientRect().top
+  })
+  await hint.click()
+  await expect(visibleHint).toContainText('By default, challengers score 2 points per vote.')
+  expect(await waitingCard.evaluate(card => card.getBoundingClientRect().top)).toBe(waitingCardTop)
+  await hint.press('Space')
+  await expect(visibleHint).toContainText('Provided there is enough time')
+  expect(await waitingCard.evaluate(card => card.getBoundingClientRect().top)).toBe(waitingCardTop)
+  showPhase('answering')
+  await expect(page.getByRole('heading', { name: '“Best vacation destination”' })).toBeVisible()
+  await expect(visibleHint).toContainText('Provided there is enough time')
+  showPhase('response')
+  await expect(hint).toHaveCount(0)
 })
 
 test('the waiting room reserves space for all twelve seats', async ({ page, request }) => {

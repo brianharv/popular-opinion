@@ -38,7 +38,7 @@ main {
   padding-block: clamp(1rem, 2vw, 1.5rem) 1rem;
 }
 
-main:has(.round-preview) {
+main:has(.round-preview, .hint-carousel) {
   display: flex;
   flex-direction: column;
   min-block-size: 100dvh;
@@ -58,6 +58,74 @@ main:has(.round-preview) {
 
 .round-preview > .card > :is(h1, aside) {
   margin-block: 0;
+}
+
+.hint-carousel {
+  width: min(100%, 32rem);
+  margin-block-start: auto;
+  margin-inline: auto;
+  overflow: clip;
+  --hint-slide-distance: 100%;
+}
+
+button.waiting-hints {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.6rem 0.8rem;
+  border-color: #d4e1f1;
+  background: #edf3fb;
+  color: var(--blueberry);
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.4;
+  text-align: start;
+  animation: hint-enter 180ms ease-out both;
+}
+
+button.waiting-hints.hint-leaving {
+  animation: hint-leave 140ms ease-in both;
+}
+
+.hint-copy {
+  display: grid;
+  min-width: 0;
+  align-items: center;
+}
+
+.hint-copy > span {
+  grid-area: 1 / 1;
+}
+
+.hint-size-sample {
+  visibility: hidden;
+}
+
+.hint-carousel button:focus-visible {
+  outline-offset: -4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hint-carousel {
+    --hint-slide-distance: 0%;
+  }
+
+  button.waiting-hints,
+  button.waiting-hints.hint-leaving {
+    animation-duration: 1ms;
+  }
+}
+
+@keyframes hint-enter {
+  from { transform: translateX(var(--hint-slide-distance)); }
+  to { transform: translateX(0); }
+}
+
+@keyframes hint-leave {
+  from { transform: translateX(0); }
+  to { transform: translateX(calc(-1 * var(--hint-slide-distance))); }
 }
 
 h1,
@@ -94,6 +162,35 @@ h3 {
   container-type: inline-size;
   text-align: center;
   padding-block: clamp(2rem, 9vw, 5rem) clamp(1.25rem, 4vw, 2rem);
+}
+
+.home-toast {
+  position: fixed;
+  z-index: 1;
+  inset-inline: 0;
+  bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+  width: fit-content;
+  max-width: calc(100% - 2rem);
+  margin: 0 auto;
+  padding: 0.65rem 1rem;
+  border-radius: 0.65rem;
+  background: #edf5e9;
+  color: #224e2b;
+  border: 1px solid #d4e4d0;
+  box-shadow: 0 0.35rem 1rem #211c1b33;
+  text-align: center;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .home-toast {
+    animation: home-toast-fade 350ms ease-out 2650ms forwards;
+  }
+}
+
+@keyframes home-toast-fade {
+  to {
+    opacity: 0;
+  }
 }
 
 .hero h1 {

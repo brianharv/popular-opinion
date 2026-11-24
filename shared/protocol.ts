@@ -21,13 +21,14 @@ const turnActionSchema = z.discriminatedUnion('type', [
 export const actionSchema = z.union([startSchema, endGameSchema, turnActionSchema.and(z.object({ turnId: z.uuid() }))])
 export type Action = z.infer<typeof startSchema> | z.infer<typeof turnActionSchema>
 export type MatchOutcome = { type: 'winner' | 'shared-tie' | 'tiebreaker'; playerIds: string[] }
-export type Phase = Action['phase'] | 'modifier-preview' | 'prompt-preview' | 'duplicate-result' | 'final-votes' | 'scoring' | 'complete'
+export type Phase = Action['phase'] | 'turn-intro' | 'modifier-preview' | 'prompt-preview' | 'duplicate-result' | 'final-votes' | 'scoring' | 'complete'
 export type Player = { id: string; name: string }
 export type Entry = { id: string; authorId: string; text: string; disqualified?: boolean }
 export type Modifier = { name: string; rule: string }
 export type Result = {
   missed: boolean
   awards: Record<string, number>
+  bonusTurn?: boolean
   votes: Record<string, string>
   totals: Record<string, number>
   entries: Entry[]
@@ -47,6 +48,8 @@ export type RoomView = {
   match?: {
     format: MatchFormat
     turnNumber: number
+    scheduledTurnNumber?: number
+    isBonusTurn?: boolean
     scores: Record<string, number>
     outcome?: MatchOutcome
   }

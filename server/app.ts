@@ -7,7 +7,9 @@ import type { WebSocket } from 'ws'
 import { z } from 'zod'
 import { actionSchema, nameSchema } from '../shared/protocol'
 import { maximumPlayers, minimumPlayers } from '../shared/match-options'
-import { action, advance, createTurn, durations, fixtureDraw, view } from './game'
+import { action, advance, createTurn, durations, view } from './game'
+import { modifiers } from './modifiers'
+import type { Modifier } from '../shared/protocol'
 import { createMatch, nextAnswerer, recordTurn } from './match'
 import { prompts, shuffle } from './prompts'
 import { openStorage, type Checkpoint, type Seat } from './storage'
@@ -19,6 +21,8 @@ type Room = {
   checkpoint?: Checkpoint
   turn?: ReturnType<typeof createTurn>
   turnNumber?: number
+  scheduledTurnNumber?: number
+  isBonusTurn?: boolean
   pendingDraw?: { prompt: string; remainingPrompts: string[] }
   queue: Promise<void>
   sockets: Map<WebSocket, string>
@@ -29,7 +33,12 @@ const hash = (token: string) => createHash('sha256').update(token).digest('hex')
 const roster = (room: Room) => room.seats.map(({ id, name }) => ({ id, name }))
 const allSeatsConnected = (room: Room) => new Set(room.sockets.values()).size === room.seats.length
 
-export async function createApp(url: string, timing = durations, serveClient = false) {
+export async function createApp(
+  url: string,
+  timing = durations,
+  serveClient = false,
+  drawModifier: () => Modifier = () => modifiers[randomInt(modifiers.length)]
+) {
   const storage = await openStorage(url)
   const app = Fastify()
   const rooms = new Map<string, Room>()
@@ -60,7 +69,9 @@ export async function createApp(url: string, timing = durations, serveClient = f
     if (match) {
       snapshot.match = {
         format: match.format,
-        turnNumber: room.turnNumber ?? match.completedTurns,
+        turnNumber: room.turnNumber ?? match.playedTurns ?? match.completedTurns,
+        scheduledTurnNumber: room.scheduledTurnNumber ?? match.completedTurns,
+        isBonusTurn: room.isBonusTurn,
         scores: match.scores,
         outcome: match.outcome,
       }
@@ -86,8 +97,12 @@ export async function createApp(url: string, timing = durations, serveClient = f
     await storage.commit(room.code, checkpoint, after)
     room.checkpoint = after
     room.pendingDraw = undefined
-    room.turnNumber = match ? match.completedTurns + 1 : undefined
-    room.turn = createTurn(roster(room), answeringId, Date.now, () => fixtureDraw(prompt), randomUUID, timing)
+    if (match) {
+      room.turnNumber = (match.playedTurns ?? match.completedTurns) + 1
+      room.isBonusTurn = Boolean(match.bonusAnswerer)
+      room.scheduledTurnNumber = match.completedTurns + (room.isBonusTurn ? 0 : 1)
+    }
+    room.turn = createTurn(roster(room), answeringId, Date.now, () => ({ prompt, modifier: drawModifier() }), randomUUID, timing)
   }
 
   function schedule(room: Room, retry = false) {
@@ -108,7 +123,7 @@ export async function createApp(url: string, timing = durations, serveClient = f
           const before = room.checkpoint!
           const result = next.result
           const after = before.match
-            ? { ...before, match: recordTurn(before.match, result.awards), result }
+            ? { ...before, match: recordTurn(before.match, result.awards, result.bonusTurn), result }
             : { ...before, result }
           await storage.commit(room.code, before, after)
           room.checkpoint = after

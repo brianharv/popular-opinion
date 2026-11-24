@@ -356,6 +356,28 @@ dialog.card {
   gap: 0.35rem 0.5rem;
 }
 
+.room-share-hint {
+  flex-basis: 100%;
+  color: var(--muted);
+  text-align: center;
+}
+
+.top:has(.room-share-hint) {
+  position: relative;
+}
+
+.top:has(.room-share-hint) > .room-back {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0.15rem;
+  z-index: 1;
+}
+
+.room-code:has(.room-share-hint) {
+  width: 100%;
+  justify-content: center;
+}
+
 .copy-code {
   display: grid;
   place-items: center;
@@ -585,7 +607,7 @@ fieldset label {
   min-height: 44px;
 }
 
-aside,
+.modifier-card,
 blockquote,
 .submitted-answer,
 .submitted-challenge,
@@ -597,29 +619,34 @@ blockquote,
   overflow-wrap: anywhere;
 }
 
-aside {
-  color: #4b305c;
+.modifier-card {
+  padding: clamp(0.875rem, 4vw, 1.5rem);
+  color: #302039;
   background: #f4edf8;
   border-color: #e1d4eb;
 }
 
-aside p {
-  margin: 0.4rem 0 0;
-}
-
-aside strong {
-  font: 400 1.6rem/1 var(--display);
-}
-
 .modifier-title {
   display: block;
+  font: 700 clamp(1.85rem, 6vw, 2.4rem)/1.08 var(--display);
   text-align: center;
-  font-weight: 700;
 }
 
 .modifier-subtitle {
+  margin: 0.5rem 0 0;
+  color: #604177;
+  font-size: 0.75rem;
   font-style: italic;
   text-align: center;
+}
+
+.modifier-rule {
+  max-inline-size: 52ch;
+  margin: 0.875rem auto 0;
+  padding-top: 0.75rem;
+  font-size: 1.0625rem;
+  line-height: 1.55;
+  text-align: start;
 }
 
 blockquote,
@@ -715,21 +742,15 @@ li {
 
 .waiting-room {
   padding-block: clamp(0.425rem, 1.5vw, 0.75rem);
+  text-align: center;
 }
 
 .waiting-room h1 {
   font-size: clamp(2rem, 6vw, 2.75rem);
-  margin-bottom: 0.4rem;
+  margin-bottom: 0.75rem;
 }
 
-.waiting-room-details {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 0.25rem 1rem;
-}
-
-.waiting-room-details p {
+.players-needed {
   margin: 0;
   font-variant-numeric: tabular-nums;
 }

@@ -879,10 +879,7 @@ function Standings({
             key={player.id}
             className={player.id === you ? 'your-row' : undefined}
           >
-            <span>
-              {player.name}{' '}
-              {player.id === you && <span className='you'>You</span>}
-            </span>
+            <span>{player.name}</span>
             <span className='score'>
               {showChange && (
                 <span
@@ -1089,7 +1086,8 @@ function Turn({
   if (
     phase === 'turn-intro' ||
     phase === 'persona-preview' ||
-    phase === 'prompt-preview'
+    phase === 'prompt-preview' ||
+    (phase === 'answering' && !answering)
   ) {
     return (
       <div className='round-preview'>
@@ -1099,7 +1097,7 @@ function Turn({
           ) : phase === 'persona-preview' && view.persona ? (
             <PersonaCard persona={view.persona} />
           ) : (
-            <h1 className='horizontal-center'>{quote(view.prompt)}</h1>
+            <h1 className='gameplay-prompt horizontal-center'>{quote(view.prompt)}</h1>
           )}
         </section>
       </div>
@@ -1284,19 +1282,17 @@ function Turn({
     <section
       className={phase === 'answering' ? 'card turn-transition' : 'card'}
     >
-      {progress && (phase !== 'answering' || answering) && (
-        <p className='tag'>{progress}</p>
-      )}
-      {(phase !== 'answering' || answering) && (
-        <p className='tag'>
+      <div className='phase'>
+        {progress && <span className='tag'>{progress}</span>}
+        <span className='tag phase-label'>
           {phase === 'response'
             ? 'Support or challenge'
             : phase === 'voting'
               ? 'Final vote'
               : 'Your turn'}
-        </p>
-      )}
-      <h1 className='horizontal-center'>{quote(view.prompt)}</h1>
+        </span>
+      </div>
+      <h1 className='gameplay-prompt horizontal-center'>{quote(view.prompt)}</h1>
       {view.persona && <PersonaCard persona={view.persona} />}
       {phase === 'response' && (
         <blockquote className='horizontal-center'>

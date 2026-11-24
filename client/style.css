@@ -82,11 +82,11 @@ button.waiting-hints {
   font-weight: 500;
   line-height: 1.4;
   text-align: start;
-  animation: hint-enter 180ms ease-out both;
+  animation: hint-enter 360ms ease-in-out both;
 }
 
 button.waiting-hints.hint-leaving {
-  animation: hint-leave 140ms ease-in both;
+  animation: hint-leave 280ms ease-in-out both;
 }
 
 .hint-copy {
@@ -409,13 +409,14 @@ dialog.card {
 }
 
 .phase {
-  align-items: flex-start;
+  align-items: baseline;
   text-align: start;
   margin-bottom: 1rem;
 }
 
-.phase h1 {
-  margin-bottom: 0;
+.phase-label {
+  margin-inline-start: auto;
+  text-align: end;
 }
 
 .top {
@@ -718,21 +719,22 @@ blockquote,
 
 .persona-card {
   padding: clamp(0.875rem, 4vw, 1.5rem);
-  color: #302039;
-  background: #f4edf8;
-  border-color: #e1d4eb;
+  color: var(--ink);
+  background: #fbf8fc;
+  border-color: #d9c9e2;
 }
 
 .persona-title {
   display: block;
-  font: 700 clamp(1.85rem, 6vw, 2.4rem)/1.08 var(--display);
+  font: 700 clamp(1.85rem, 6vw, 2.4rem)/1.2 var(--display);
   text-align: center;
 }
 
 .persona-subtitle {
   margin: 0.5rem 0 0;
   color: #604177;
-  font-size: 0.75rem;
+  font-size: 0.9375rem;
+  line-height: 1.5;
   font-style: italic;
   text-align: center;
 }
@@ -746,23 +748,35 @@ blockquote,
   text-align: start;
 }
 
+.gameplay-prompt {
+  line-height: 1.25;
+}
+
 blockquote,
-.submitted-answer {
-  color: #224e2b;
-  background: #edf5e9;
-  border-color: #d4e4d0;
+.submitted-answer,
+.submitted-challenge,
+.submitted-support {
+  color: var(--ink);
+  line-height: 1.35;
+}
+
+blockquote {
   font-size: 1.75rem;
 }
 
+blockquote,
+.submitted-answer {
+  background: #f7faf5;
+  border-color: #d4e4d0;
+}
+
 .submitted-challenge {
-  color: #4b305c;
-  background: #f4edf8;
-  border-color: #e1d4eb;
+  background: #fbf8fc;
+  border-color: #d9c9e2;
 }
 
 .submitted-support {
-  color: var(--blueberry);
-  background: #edf3fb;
+  background: #f5f9fd;
   border-color: #d4e1f1;
 }
 

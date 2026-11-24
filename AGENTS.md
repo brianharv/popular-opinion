@@ -45,20 +45,20 @@ Use **support votes** for initial Phase 1 support, including defaults, **retaine
 
 Default challenger award is 2 points per final vote, doubled for every eligible challenger tied for the most votes among challengers. Disqualified challengers get zero under default scoring. Modifier text takes precedence over the default rules where it explicitly addresses them. A missed original answer always gives everyone zero.
 
-| Modifier | Scoring rule |
-| --- | --- |
-| The College Try | 2 per support vote plus 1 per retained vote. Double the subtotal if nobody challenged. |
-| Panderer | 3 per support vote plus 1 per retained vote, minus 3 per challenger, plus 10 if nobody challenged. |
-| Ice Breaker | Lose 3 if nobody challenged. Otherwise triple the sum of retained votes and the greatest vote count received by any single challenger. |
-| The Troll | 2 per challenger, plus 5 if zero retained votes, minus 5 if nobody challenged. Triple the subtotal if all opponents challenged. This applies when Phase 2 is skipped. Challengers score zero. |
-| Provacateur | 2 per challenger plus 2 per retained vote. Triple if at least one opponent challenged and no challenger receives a vote. If zero support votes and every opponent challenged, replace the award with −5. |
-| Touché | 5 per retained vote if at least one vote was retained and any challenger receives the same number. Otherwise zero. |
-| Deadlock | 3 plus 2 per retained vote. Triple if at least two challengers receive the same positive number of votes. Challengers score zero. |
-| Good Yard, Sir | 1 per support vote plus 2 per retained vote. Add 10 if the Answering Player leads or ties for the lead in final votes. |
-| Suddenly Libertarian | Triple the greater of the support vote count and the challenger count, then subtract 5. |
-| Finsta | 3 per retained vote. Deduct 3 from each challenger's default award, including disqualified challengers. Add 5 to the Answering Player if they have a clear lead in points for the turn after the deductions and before the bonus. |
-| Double Down | Tentative award of 2 per support vote plus 2 per retained vote. If the Answering Player has a clear lead in points for the turn, keep that award and grant a bonus turn. Otherwise their award is zero. |
-| The Ambien Defense | 2 per support vote plus 1 per retained vote. Keep the award and grant a bonus turn if the Answering Player does not have a clear lead in points for the turn. |
+| Modifier             | Scoring rule                                                                                                                                                                                                                      |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| The College Try      | 2 per support vote plus 1 per retained vote. Double the subtotal if nobody challenged.                                                                                                                                            |
+| Panderer             | 3 per support vote plus 1 per retained vote, minus 3 per challenger, plus 10 if nobody challenged.                                                                                                                                |
+| Ice Breaker          | Lose 3 if nobody challenged. Otherwise triple the sum of retained votes and the greatest vote count received by any single challenger.                                                                                            |
+| The Troll            | 2 per challenger, plus 5 if zero retained votes, minus 5 if nobody challenged. Triple the subtotal if all opponents challenged. This applies when Phase 2 is skipped. Challengers score zero.                                     |
+| Provocateur          | 2 per challenger plus 2 per retained vote. Triple if at least one opponent challenged and no challenger receives a vote. If zero support votes and every opponent challenged, replace the award with −5.                          |
+| Touché               | 5 per retained vote if at least one vote was retained and any challenger receives the same number. Otherwise zero.                                                                                                                |
+| Deadlock             | 3 plus 2 per retained vote. Triple if at least two challengers receive the same positive number of votes. Challengers score zero.                                                                                                 |
+| Good Yard, Sir       | 1 per support vote plus 2 per retained vote. Add 10 if the Answering Player leads or ties for the lead in final votes.                                                                                                            |
+| Suddenly Libertarian | Triple the greater of the support vote count and the challenger count, then subtract 5.                                                                                                                                           |
+| Finsta               | 3 per retained vote. Deduct 3 from each challenger's default award, including disqualified challengers. Add 5 to the Answering Player if they have a clear lead in points for the turn after the deductions and before the bonus. |
+| Double Down          | Tentative award of 2 per support vote plus 2 per retained vote. If the Answering Player has a clear lead in points for the turn, keep that award and grant a bonus turn. Otherwise their award is zero.                           |
+| The Ambien Defense   | 2 per support vote plus 1 per retained vote. Keep the award and grant a bonus turn if the Answering Player does not have a clear lead in points for the turn.                                                                     |
 
 ## Tiebreaker
 
@@ -83,29 +83,29 @@ Default challenger award is 2 points per final vote, doubled for every eligible 
 3. Add the mobile browser flows. Use four isolated browser sessions for the core match paths and test the 12-seat boundary.
 4. Verify the hosted build and reconnect behavior before the first playtest. Keep secrets out of browser payloads and repository files.
 
-| Fixture | Expected result |
-| --- | --- |
-| Four-player Troll, everyone challenges | Phase 2 skipped. Answering Player +33, challengers zero. |
-| Four-player Troll, two challenges, one supporter switches | Answering Player +9, challengers zero. |
-| Three submitted challenges, two disqualified | Troll still counts three. Panderer penalty is −9. Finsta deducts 3 from each challenger. |
-| Four-player Provacateur, everyone challenges | Answering Player −5, others zero. |
-| Answering Player submits Paris, then edits to Rome without submitting | Paris reveals as soon as the answer timer reaches zero. |
-| Answering Player times out with no submission and The Troll | Zero points and no Modifier reveal on any opponent device. |
-| Duplicate review paused at 6 or 14 seconds | Completed reviews restore 10 or 14 seconds respectively. Opening or canceling the selector leaves the voting clock running. |
-| Duplicates pass while a challenge holds a vote | Vote returns atomically to the original answer and the voter sees it. |
-| Five eligible duplicate voters, two yes and three no | Review fails. A separate case verifies missing ballots become yes at the deadline. |
-| Four browser sessions inspect live updates and reconnect | Private Modifier and vote allocations appear only in the intended views before scoring. |
-| 50-point target, final totals 58, 50, and 49 | Players at 58 and 50 qualify. Player at 49 does not. |
-| Round-based final scheduled turn grants chained bonuses | Play the chain before checking the standings. |
-| Tiebreaker, duplicate review leaves one or zero answers | One wins immediately. Zero draws a fresh Prompt. |
-| Two consecutive completed tiebreaker ballots with no votes | Remaining contenders share the tie. |
-| Restart before versus after score commit | Replay before commit. Preserve scores exactly once and resume the saved next state after commit. |
+| Fixture                                                               | Expected result                                                                                                             |
+| --------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| Four-player Troll, everyone challenges                                | Phase 2 skipped. Answering Player +33, challengers zero.                                                                    |
+| Four-player Troll, two challenges, one supporter switches             | Answering Player +9, challengers zero.                                                                                      |
+| Three submitted challenges, two disqualified                          | Troll still counts three. Panderer penalty is −9. Finsta deducts 3 from each challenger.                                    |
+| Four-player Provocateur, everyone challenges                          | Answering Player −5, others zero.                                                                                           |
+| Answering Player submits Paris, then edits to Rome without submitting | Paris reveals as soon as the answer timer reaches zero.                                                                     |
+| Answering Player times out with no submission and The Troll           | Zero points and no Modifier reveal on any opponent device.                                                                  |
+| Duplicate review paused at 6 or 14 seconds                            | Completed reviews restore 10 or 14 seconds respectively. Opening or canceling the selector leaves the voting clock running. |
+| Duplicates pass while a challenge holds a vote                        | Vote returns atomically to the original answer and the voter sees it.                                                       |
+| Five eligible duplicate voters, two yes and three no                  | Review fails. A separate case verifies missing ballots become yes at the deadline.                                          |
+| Four browser sessions inspect live updates and reconnect              | Private Modifier and vote allocations appear only in the intended views before scoring.                                     |
+| 50-point target, final totals 58, 50, and 49                          | Players at 58 and 50 qualify. Player at 49 does not.                                                                        |
+| Round-based final scheduled turn grants chained bonuses               | Play the chain before checking the standings.                                                                               |
+| Tiebreaker, duplicate review leaves one or zero answers               | One wins immediately. Zero draws a fresh Prompt.                                                                            |
+| Two consecutive completed tiebreaker ballots with no votes            | Remaining contenders share the tie.                                                                                         |
+| Restart before versus after score commit                              | Replay before commit. Preserve scores exactly once and resume the saved next state after commit.                            |
 
 ## Open rulings
 
 - Settle whether submitting a flag automatically records the flagger’s yes ballot.
 - Decide whether negative cumulative scores are allowed. The card awards include negative values.
-- Confirm whether any Modifier besides The Troll and Provacateur overrides the zero-support exit, particularly Suddenly Libertarian.
+- Confirm whether any Modifier besides The Troll and Provocateur overrides the zero-support exit, particularly Suddenly Libertarian.
 - Supply the initial Prompt deck and confirm card repeat and deck exhaustion rules, including tiebreakers, bonus turns, and replay draws.
 - Confirm room join details and host permissions beyond starting and ending the match, including whether a host can transfer control.
 - Confirm tiebreaker ballot revision behavior and the presentation timing after a tiebreaker result.

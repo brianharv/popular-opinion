@@ -160,6 +160,8 @@ export async function createApp(
     return { code: room.code, token }
   }
 
+  app.get('/healthz', async () => ({ status: 'ok' }))
+
   app.post('/api/rooms', async (request, reply) => {
     const body = z.object({ name: nameSchema }).safeParse(request.body)
     if (!body.success) return reply.code(400).send({ error: 'Enter a screen name of 1–24 characters.' })

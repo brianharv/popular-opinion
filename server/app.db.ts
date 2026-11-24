@@ -74,7 +74,7 @@ test('a real PostgreSQL checkpoint replays an interrupted turn and preserves com
     await expect.poll(() => answerer.show().phase).toBe('final-votes')
     const result = answerer.show().result!
     expect(result.awards[answeringId!]).toBe(33)
-    persona = personas.find(card => card.name === 'Double Down')!
+    persona = personas.find(card => card.name === 'The Double Down')!
     await restart()
     const restored = await connect(host)
     await expect.poll(() => restored.show().phase).toBe('answering')

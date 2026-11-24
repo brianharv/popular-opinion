@@ -51,23 +51,23 @@ Use **support votes** for initial Phase 1 support, including defaults, **retaine
 
 Default challenger award is 2 points per final vote, doubled for every eligible challenger tied for the most votes among challengers. Disqualified challengers get zero under default scoring. Persona text takes precedence over the default rules where it explicitly addresses them. A missed original answer always gives everyone zero. Cumulative scores can go below zero. Apply deductions in full and show negative totals in the standings.
 
-**Zero support.** The Troll, Provocateur, and Suddenly Libertarian have confirmed scoring overrides when everyone challenges. Phase 2 is still skipped. A turn with no submitted original answer follows the separate “No answer submitted” outcome.
+**Zero support.** The Troll, The Provocateur, Suddenly Libertarian, and Ken M. have confirmed scoring overrides when everyone challenges. Phase 2 is still skipped. A turn with no submitted original answer follows the separate “No answer submitted” outcome.
 
 ## Persona catalog
 
-### The College Try
+### Painfully Earnest
 
-_Just a plain ol’ good faith answer._
+_Who's a good boy?_
 
 2 per support vote plus 1 per retained vote. Double the subtotal if nobody challenged.
 
-### Panderer
+### The Panderer
 
 _Shut up and play the hits to the cheap seats._
 
 3 per support vote plus 1 per retained vote, minus 3 per challenger, plus 10 if nobody challenged.
 
-### Ice Breaker
+### The Ice Breaker
 
 _“Let’s give them something to talk about.”_
 
@@ -79,53 +79,77 @@ _“If you don’t have anything nice to say, say it on the internet.”_
 
 2 per challenger, plus 5 if zero retained votes, minus 5 if nobody challenged. Triple the subtotal if all opponents challenged. This applies when Phase 2 is skipped. Challengers score zero.
 
-### Provocateur
+### The Provocateur
 
 _You never met a pot that didn’t need stirring._
 
 2 per challenger plus 2 per retained vote. Triple if at least one opponent challenged and no challenger receives a vote. If zero support votes and every opponent challenged, replace the award with −5.
 
-### Touché
+### The Bipartisan
 
-_It seems you have met your intellectual match. Now y’all stay classy so this can stay a compliment._
+_To each their own (even though you're wrong)._
 
-5 per retained vote if at least one vote was retained and any challenger receives the same number. Otherwise zero.
+Your goal is to retain at least one vote while ending the round with the same vote tally as another challenger. Do this and score 10 points this round. Challengers do not score this round.
 
-### Deadlock
+### Yojimbo
 
-_“The jury’s still out on science.”_
+_“It would seem we have reached an impasse.”_
 
-3 plus 2 per retained vote. Triple if at least two challengers receive the same positive number of votes. Challengers score zero.
+Score 5 points per eligible challenger whose positive final vote tally ties another challenger’s. Challengers score zero.
 
-### Good Yard, Sir
+### Sir John Falstaff
 
-_A good buzz isn’t going to keep you from making a compelling argument, you legend, you._
+_In vino veritas._
 
-1 per support vote plus 2 per retained vote. Add 10 if the Answering Player leads or ties for the lead in final votes.
+1 per challenger plus 2 per retained vote. Add 5 if the Answering Player leads or ties for the lead in final votes.
 
 ### Suddenly Libertarian
 
 _Oh, right, sorry – you liked Ron Paul in ’08._
 
-Take whichever is higher: your support votes or the number of challengers. Triple that number, then subtract 5 points. This still applies if you get zero support votes. In that case, skip Phase 2.
+Take whichever is higher: your retained votes or the number of challengers. Triple that number, then subtract 5 points (because shame on you). This still applies if everyone challenges.
 
-### Finsta
+### The Finsta
 
-_For some, it’s a way to review onion rings incognito, for others it’s their preferred method to argue with strangers on the social media platform they bought._
+_The recommended method for arguing with strangers on the social media platform you just bought._
 
-3 per retained vote. Deduct 3 from each challenger's default award, including disqualified challengers. Add 5 to the Answering Player if they have a clear lead in points for the turn after the deductions and before the bonus.
+3 per retained vote. Deduct 3 from each challenger's default award, including disqualified challengers. Add 5 if the Answering Player has the most round points outright after those deductions and before the bonus.
 
-### Double Down
+### The Double Down
 
 _Prediction markets say this is a key indicator of a forthcoming “break from socials.”_
 
-Tentative award of 2 per support vote plus 2 per retained vote. If the Answering Player has a clear lead in points for the turn, keep that award and grant a bonus turn. Otherwise their award is zero.
+Score 2 points per support vote plus 2 points per retained vote. If you score the highest this round, take a bonus turn. Otherwise your score this turn is zero.
 
 ### The Ambien Defense
 
 _Side effects include dizziness, dry-mouth, and spontaneous racist tirades brought on by transcontinental flight._
 
-2 per support vote plus 1 per retained vote. Keep the award and grant a bonus turn if the Answering Player does not have a clear lead in points for the turn.
+Score 2 points per support vote plus 1 point per retained vote. Unless you score the highest this turn, take a bonus turn.
+
+### The Daydreamer
+
+_“Could you repeat the question?”_
+
+Your answer is tangentially related at best. Set your score to that of the highest scoring challenger and add 3 bonus points.
+
+Use zero as the starting award if nobody challenged. The standard zero-support rule still applies.
+
+### The Karma Farmer
+
+_It ain't much, but it's honest work._
+
+Score 1 point for each support vote and each retained vote. Take another turn.
+
+When everyone challenges, skip Phase 2 and give everyone zero points. The Answering Player still earns the bonus turn.
+
+### Ken M.
+
+_you'd be suprised at how many people dont know anything about knowledge and yet we should forgive them for they know not what they not know._
+
+Score 2 points for each challenger. Instead of scoring, each challenger loses 2 points. Take another turn.
+
+If everyone challenges, go straight to the scoring view, apply the same awards, and grant the bonus turn.
 
 ## Tiebreakers
 
@@ -149,10 +173,10 @@ _Side effects include dizziness, dry-mouth, and spontaneous racist tirades broug
 | --------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
 | Four-player Troll, everyone challenges                                | Phase 2 skipped. Answering Player +33, challengers zero.                                                                    |
 | Four-player Troll, two challenges, one supporter switches             | Answering Player +9, challengers zero.                                                                                      |
-| Three submitted challenges, two disqualified                          | Troll still counts three. Panderer penalty is −9. Finsta deducts 3 from each challenger.                                    |
-| Four-player Provocateur, everyone challenges                          | Answering Player −5, others zero.                                                                                           |
+| Three submitted challenges, two disqualified                          | Troll still counts three. The Panderer penalty is −9. The Finsta deducts 3 from each challenger.                                    |
+| Four-player The Provocateur, everyone challenges                          | Answering Player −5, others zero.                                                                                           |
 | Four-player Suddenly Libertarian, everyone challenges                 | Skip Phase 2. Answering Player earns 4 points (3 × 3 − 5), others zero.                                                     |
-| Ice Breaker starts at 2 points and nobody challenges                  | Apply the −3 award. Show a cumulative score of −1 in the standings.                                                         |
+| The Ice Breaker starts at 2 points and nobody challenges                  | Apply the −3 award. Show a cumulative score of −1 in the standings.                                                         |
 | Answering Player submits Paris, then edits to Rome without submitting | Paris reveals as soon as the answer timer reaches zero.                                                                     |
 | Answering Player times out with no submission and The Troll           | Zero points and no Persona reveal on any opponent device.                                                                  |
 | Duplicate review paused at 6 or 14 seconds                            | Completed reviews restore 10 or 14 seconds respectively. Opening or canceling the selector leaves the voting clock running. |
@@ -168,7 +192,7 @@ _Side effects include dizziness, dry-mouth, and spontaneous racist tirades broug
 ## Open design decisions
 
 - Settle whether submitting a flag automatically records the flagger’s yes ballot.
-- Confirm whether any Persona besides The Troll, Provocateur, and Suddenly Libertarian overrides zero-support scoring.
+- Confirm whether any Persona besides The Troll, The Provocateur, Suddenly Libertarian, and Ken M. overrides zero-support scoring.
 - Confirm room join details and host permissions beyond starting and ending the match, including whether a host can transfer control.
 - Confirm tiebreaker ballot revision behavior and the presentation timing after a tiebreaker result.
 

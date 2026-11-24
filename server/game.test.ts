@@ -149,8 +149,12 @@ test('reveals Paris as soon as answering ends and runs a private 15-second final
   expect(game.show('b')).toMatchObject({ phase: 'scoring', phaseDuration: 10_000, result: { awards: { a: 9 } } })
 })
 
-test('all opponents challenging skips Phase 2 and awards Troll 33', () => {
-  const game = setup()
+test.each([
+  { name: 'The Troll', points: 33, bonusTurn: undefined },
+  { name: 'The Karma Farmer', points: 0, bonusTurn: true },
+  { name: 'Ken M.', points: 6, bonusTurn: true }
+])('$name scores $points and skips Phase 2 when everyone challenges', ({ name, points, bonusTurn }) => {
+  const game = setup(undefined, personas.find(persona => persona.name === name)!)
   game.next(3000)
   game.next(10_000)
   game.next(5000)
@@ -160,7 +164,11 @@ test('all opponents challenging skips Phase 2 and awards Troll 33', () => {
     game.send(id, { type: 'challenge', phase: 'response', text: id })
   }
   game.next(30_000)
-  expect(game.show('b')).toMatchObject({ phase: 'final-votes', result: { awards: { a: 33, b: 0, c: 0, d: 0 } } })
+  const challengerPoints = name === 'Ken M.' ? -2 : 0
+  expect(game.show('b')).toMatchObject({
+    phase: name === 'Ken M.' ? 'scoring' : 'final-votes',
+    result: { awards: { a: points, b: challengerPoints, c: challengerPoints, d: challengerPoints }, bonusTurn }
+  })
 })
 
 test('a late answer is rejected and a missed turn hides the Persona', () => {

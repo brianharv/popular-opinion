@@ -196,7 +196,9 @@ function score(turn: Turn, now: number): Turn {
   const { awards, bonusTurn } = turn.original && card
     ? scorePersona(card.name, turn.answeringId, playerIds, turn.challenges, totals, totals[turn.original.id])
     : { awards: Object.fromEntries(playerIds.map(id => [id, 0])), bonusTurn: false };
-  const phase = turn.original ? 'final-votes' : 'scoring';
+  const kenAllChallenged = card?.name === 'Ken M.' &&
+    turn.challenges.length === playerIds.length - 1;
+  const phase = turn.original && !kenAllChallenged ? 'final-votes' : 'scoring';
   return {
     ...turn,
     phase,

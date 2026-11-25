@@ -22,7 +22,7 @@ export const prompts: readonly string[] = [
   "What’s the best way to relate to older generations?",
   "What’s the best way to sign off a professional email?",
   "What’s the best way to spend $25?",
-  "What’s the best celebrity on socials?",
+  "Who’s the best celebrity on socials?",
   "What’s the best cold dish?",
   "What’s the best hot beverage?",
   "What’s the best cliche tattoo?",

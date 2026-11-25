@@ -17,6 +17,7 @@ Use a private room for 4–12 players. The game is designed for co-located play.
 - Round-based options are 5, 7, or 10 scheduled turns per player. A bonus turn plays immediately and does not consume a scheduled turn. Bonus turns can chain, including after the last scheduled turn. Check final standings after the chain. Players tied for the highest score enter a tiebreaker.
 - Score-based targets are 50, 100, or 200. Apply every player's award together, then check final totals for the turn. One player at or above target wins. If multiple players qualify on the same turn, all qualify for the tiebreaker even if their totals differ. A victory or tiebreaker takes precedence over a bonus turn.
 - If the entire roster qualifies for a tiebreaker, end in a shared tie.
+- When a match has a winner, show the winner’s name in a modal three seconds after final standings appear. Dismiss it after three seconds and keep the final standings visible.
 - A turn can award points to the Answering Player and to challengers. A missed answering turn still consumes its scheduled turn.
 
 ## Card draws
@@ -32,8 +33,8 @@ Use a private room for 4–12 players. The game is designed for co-located play.
 3. Reveal the locked answer as soon as the answer timer reaches zero.
 4. Run the 30-second Phase 1 response window. Opponents explicitly submit Support or Challenge and can change their submitted choice until the deadline. Show each player their last accepted choice and answer. Draft edits or selecting an option in the form leave the accepted choice intact. An absent response or a challenge without a valid nonblank submission defaults to Support.
 5. If support votes total zero, skip Phase 2, reveal the Persona at scoring, and award zero by default. An explicit Persona override can still award points or deduct points here.
-6. Otherwise, reveal challenge answers and run Phase 2 for 15 seconds. Only Phase 1 supporters can move their vote, choosing between the original answer and valid challenge answers. A supporter who takes no action retains their initial allocation. Players see their own current action, and final vote allocations and totals become public at scoring.
-7. When the Phase 2 timer reaches zero, all votes must point to valid answers before scoring. Resolve the Persona and challenger awards, commit the outcome, then show final votes for 5 seconds followed by the standings for 10 seconds before automatically advancing. Show the same results on every device and highlight the viewer's standings row.
+6. Otherwise, reveal challenge answers and run Phase 2 for 15 seconds (7.5 seconds if every opponent supported). Only Phase 1 supporters can move their vote, choosing between the original answer and valid challenge answers. A supporter who takes no action retains their initial allocation. Players see their own current action, and final vote allocations and totals become public at scoring.
+7. When the Phase 2 timer reaches zero, all votes must point to valid answers before scoring. Resolve the Persona and challenger awards, commit the outcome, then show Final Votes for 5 seconds (2.5 seconds if every opponent supported), followed by the Results standings for 8 seconds before automatically advancing. Show the same results on every device and highlight the viewer's standings row.
 
 Timed phases run to zero even if everyone has submitted. The voting clock keeps running while a player selects duplicates and pauses when the server accepts the flag. A completed review restores the greater of the paused time and 10 seconds when play resumes.
 
@@ -65,7 +66,7 @@ _Who's a good boy?_
 
 _Shut up and play the hits to the cheap seats._
 
-3 per support vote plus 1 per retained vote, minus 3 per challenger, plus 10 if nobody challenged.
+3 per support vote plus 1 per retained vote, minus 3 per challenger, plus 5 if nobody challenged.
 
 ### The Ice Breaker
 
@@ -77,13 +78,13 @@ Lose 3 if nobody challenged. Otherwise triple the sum of retained votes and the 
 
 _“If you don’t have anything nice to say, say it on the internet.”_
 
-2 per challenger, plus 5 if zero retained votes, minus 5 if nobody challenged. Triple the subtotal if all opponents challenged. This applies when Phase 2 is skipped. Challengers score zero.
+2 per challenger, plus 5 if zero retained votes. Double the subtotal if all opponents challenged. This applies when Phase 2 is skipped. Challengers score zero.
 
 ### The Provocateur
 
 _You never met a pot that didn’t need stirring._
 
-2 per challenger plus 2 per retained vote. Triple if at least one opponent challenged and no challenger receives a vote. If zero support votes and every opponent challenged, replace the award with −5.
+2 per challenger plus 2 per retained vote. Double if at least one opponent challenged and no challenger receives a vote. If zero support votes and every opponent challenged, replace the award with −5.
 
 ### The Bipartisan
 
@@ -105,15 +106,15 @@ _In vino veritas._
 
 ### Suddenly Libertarian
 
-_Oh, right, sorry – you liked Ron Paul in ’08._
+_A common maneuver observed in parents trying to stay on the right side of history._
 
-Take whichever is higher: your retained votes or the number of challengers. Triple that number, then subtract 5 points (because shame on you). This still applies if everyone challenges.
+Take whichever is higher: your retained votes or the number of challengers. Triple that number. This still applies if everyone challenges.
 
 ### The Finsta
 
 _The recommended method for arguing with strangers on the social media platform you just bought._
 
-3 per retained vote. Deduct 3 from each challenger's default award, including disqualified challengers. Add 5 if the Answering Player has the most round points outright after those deductions and before the bonus.
+3 per retained vote. Subtract 3 from each challenger’s award for the round, with a minimum award of zero. Add 5 if the Answering Player has the most round points outright after those deductions and before the bonus.
 
 ### The Double Down
 
@@ -145,11 +146,41 @@ When everyone challenges, skip Phase 2 and give everyone zero points. The Answer
 
 ### Ken M.
 
-_you'd be suprised at how many people dont know anything about knowledge and yet we should forgive them for they know not what they not know._
+_“you'd be suprised at how many people dont know anything about knowledge and yet we should forgive them for they know not what they not know.”_
 
 Score 2 points for each challenger. Instead of scoring, each challenger loses 2 points. Take another turn.
 
 If everyone challenges, go straight to the scoring view, apply the same awards, and grant the bonus turn.
+
+### TL;DR
+
+_It's time to make some sweeping claims based on that headline you read._
+
+Score 2 points per retained vote. Challengers score an extra point per vote, added to their default award.
+
+### Portia, Reader of the Papers
+
+_You know what's up._
+
+Gain 1 point per player, including yourself. Take another turn.
+
+### Good Bot
+
+_Beep boap boop_
+
+Score 1 point per support vote and 1 point per retained vote.
+
+### Mr. Agreeable
+
+_What he said._
+
+Only eligible challengers tied for the most votes receive their default award. Match the award of one such challenger, or score zero if nobody challenged.
+
+### FIFA President
+
+_Kickbacks, get it? Soccer? Kick?_
+
+Score 1 point per support vote and 2 per retained vote. Each initial supporter gains half your award, rounded up. Challengers score zero.
 
 ## Tiebreakers
 
@@ -171,11 +202,11 @@ If everyone challenges, go straight to the scoring view, apply the same awards, 
 
 | Fixture                                                               | Expected result                                                                                                             |
 | --------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| Four-player Troll, everyone challenges                                | Phase 2 skipped. Answering Player +33, challengers zero.                                                                    |
+| Four-player Troll, everyone challenges                                | Phase 2 skipped. Answering Player +22, challengers zero.                                                                    |
 | Four-player Troll, two challenges, one supporter switches             | Answering Player +9, challengers zero.                                                                                      |
-| Three submitted challenges, two disqualified                          | Troll still counts three. The Panderer penalty is −9. The Finsta deducts 3 from each challenger.                            |
+| Three submitted challenges, two disqualified                          | Troll still counts three. The Panderer penalty is −9. The Finsta leaves disqualified challengers at zero.                            |
 | Four-player The Provocateur, everyone challenges                      | Answering Player −5, others zero.                                                                                           |
-| Four-player Suddenly Libertarian, everyone challenges                 | Skip Phase 2. Answering Player earns 4 points (3 × 3 − 5), others zero.                                                     |
+| Four-player Suddenly Libertarian, everyone challenges                 | Skip Phase 2. Answering Player earns 9 points (3 × 3), others zero.                                                     |
 | The Ice Breaker starts at 2 points and nobody challenges              | Apply the −3 award. Show a cumulative score of −1 in the standings.                                                         |
 | Answering Player submits Paris, then edits to Rome without submitting | Paris reveals as soon as the answer timer reaches zero.                                                                     |
 | Answering Player times out with no submission and The Troll           | Zero points and no Persona reveal on any opponent device.                                                                   |

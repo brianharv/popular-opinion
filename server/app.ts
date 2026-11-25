@@ -127,7 +127,7 @@ export async function createApp(
             : { ...before, result }
           await storage.commit(room.code, before, after)
           room.checkpoint = after
-          next.deadline = Date.now() + timing[next.phase]
+          next.deadline = Date.now() + next.durations[next.phase]
         }
         if (next.phase === 'complete' && room.checkpoint?.match && !room.checkpoint.match.outcome) {
           await beginTurn(room)
@@ -182,7 +182,7 @@ export async function createApp(
     return serialize(room, () => {
       if (room.checkpoint || room.seats.length >= maximumPlayers) return reply.code(409).send({ error: 'This room is closed to new players.' })
       if (room.seats.some(seat => seat.name.toLowerCase() === body.data.name.toLowerCase())) {
-        return reply.code(409).send({ error: 'Choose a different screen name.' })
+        return reply.code(409).send({ error: 'That screen name is already in use. Choose a different name.', field: 'name' })
       }
       return addSeat(room, body.data.name)
     })

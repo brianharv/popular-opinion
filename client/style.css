@@ -588,6 +588,12 @@ button.outline.copy-code:active {
   justify-content: space-between;
 }
 
+.winner-announcement h1 {
+  margin: 0;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
 .room-menu-actions {
   place-items: center;
 }
@@ -880,6 +886,17 @@ blockquote,
   border: 1px solid;
   border-radius: 0.25rem;
   margin: 0.75rem 0;
+  overflow-wrap: anywhere;
+}
+
+.bonus-turn-card {
+  margin: 0.75rem 0;
+  padding: 0.45rem 0.75rem;
+  border: 1px solid var(--success-ink);
+  border-radius: 0.25rem;
+  background: var(--success-fill);
+  color: var(--success-ink);
+  text-align: center;
   overflow-wrap: anywhere;
 }
 

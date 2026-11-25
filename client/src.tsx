@@ -169,9 +169,11 @@ function Home() {
               setError('');
             }}
           >
-            <span className='action-icon action-create' aria-hidden='true'>
-              <span className='action-plus'>+</span>
-            </span>
+            <img
+              className='action-icon'
+              src={new URL('./assets/win95-joystick.png', import.meta.url).href}
+              alt=''
+            />
             <span className='action-label'>Create Game</span>
           </button>
           <button
@@ -182,15 +184,19 @@ function Home() {
               setError('');
             }}
           >
-            <span className='action-icon action-join' aria-hidden='true'>
-              →
-            </span>
+            <img
+              className='action-icon'
+              src={new URL('./assets/win95-network.png', import.meta.url).href}
+              alt=''
+            />
             <span className='action-label'>Join Game</span>
           </button>
           <Link className='home-action' to='/how-to-play'>
-            <span className='action-icon action-help' aria-hidden='true'>
-              ?
-            </span>
+            <img
+              className='action-icon'
+              src={new URL('./assets/win95-helpbook.png', import.meta.url).href}
+              alt=''
+            />
             <span className='action-label'>How to Play</span>
           </Link>
         </div>
@@ -292,7 +298,8 @@ function RoomCode({
   return (
     <div className='room-code' data-copy-status={copyStatus}>
       <span>
-        Room code: <strong>{code}</strong>
+        <span className='room-code-label'>Room code:</span>{' '}
+        <strong>{code}</strong>
       </span>
       <button
         type='button'
@@ -354,30 +361,24 @@ function RoomMenu({
     <>
       <button
         type='button'
-        className='outline room-menu-toggle'
+        className='room-menu-toggle'
         aria-label='Open room menu'
         aria-haspopup='dialog'
         aria-controls={dialogId}
         onClick={() => dialog.current?.showModal()}
       >
-        <svg
-          aria-hidden='true'
-          width='22'
-          height='22'
-          viewBox='0 0 24 24'
-          fill='none'
-          stroke='currentColor'
-          strokeWidth='2'
-          strokeLinecap='round'
-        >
-          <path d='M4 6h16M4 12h16M4 18h16' />
-        </svg>
+        <img
+          src={new URL('./assets/win95-settings.png', import.meta.url).href}
+          width='24'
+          height='24'
+          alt=''
+        />
       </button>
       <dialog
         ref={dialog}
         id={dialogId}
         aria-label='Room menu'
-        className='card room-menu'
+        className='card room-menu room-menu-with-close'
       >
         <RoomCode code={code} />
         {error && <p role='alert'>{error}</p>}
@@ -391,8 +392,11 @@ function RoomMenu({
               Leave Game
             </button>
           )}
-          <button className='outline room-menu-close' autoFocus>
-            Close
+          <button className='room-menu-close' aria-label='Close' autoFocus>
+            <img
+              src={new URL('./assets/win95-x.svg', import.meta.url).href}
+              alt=''
+            />
           </button>
         </form>
       </dialog>
@@ -417,7 +421,12 @@ function ConnectingToRoom() {
       aria-labelledby={statusId}
       onCancel={(event) => event.preventDefault()}
     >
-      <span className='room-loading-spinner' aria-hidden='true' />
+      <span className='room-loading-squares' aria-hidden='true'>
+        <span />
+        <span />
+        <span />
+        <span />
+      </span>
       <p id={statusId} role='status'>
         Connecting to room…
       </p>
@@ -579,7 +588,7 @@ function Room() {
       )}
       {connecting && !view && (
         <section className='card waiting-room' aria-hidden='true'>
-          <h1>Waiting room</h1>
+          <h1>Lobby</h1>
         </section>
       )}
       {view && (
@@ -603,7 +612,9 @@ function Room() {
             className='card room-menu'
             aria-labelledby={endGameTitle}
           >
-            <h2 id={endGameTitle}>End the game for everyone?</h2>
+            <h2 id={endGameTitle} className='horizontal-center'>
+              End the game for everyone?
+            </h2>
             <form method='dialog' className='end-game-actions'>
               <button className='outline' autoFocus>
                 Cancel
@@ -701,12 +712,11 @@ function Timer({
         isPlaying={remaining > 0}
         duration={seconds}
         initialRemainingTime={remaining}
-        updateInterval={1}
         size={24}
         strokeWidth={5}
         strokeLinecap='butt'
-        colors={remaining > 0 ? '#1c4f86' : '#ddd7d2'}
-        trailColor='#ddd7d2'
+        colors={remaining > 0 ? '#ffffff' : '#211c1b'}
+        trailColor='#211c1b'
       >
         {({ remainingTime }) => (
           <span
@@ -819,6 +829,16 @@ function PersonaCard({ persona }: { persona: Persona }) {
 const scoringLeadIn = 300;
 const scoreTransferDuration = 520;
 const scoreTransferPause = 300;
+
+function YouIcon() {
+  return (
+    <img
+      className='you-icon'
+      src={new URL('./assets/win98-person.png', import.meta.url).href}
+      alt='You'
+    />
+  );
+}
 
 function Standings({
   players,
@@ -1047,7 +1067,7 @@ function Turn({
           : '';
     return (
       <section className='card waiting-room'>
-        <h1>Waiting room</h1>
+        <h1>Lobby</h1>
         <p className='players-needed' role='status'>
           Players needed: <strong>{playersNeeded}</strong>
         </p>
@@ -1061,15 +1081,21 @@ function Turn({
               <span className='lobby-player-name' title={player.name}>
                 {player.name}
               </span>
-              {player.id === you && <span className='you'>You</span>}
+              {player.id === you && <YouIcon />}
             </li>
           ))}
         </ul>
-        {view.hostId === you && (
+        {view.hostId === you ? (
           <MatchSetup
             startHint={startHint}
             start={(format) => send({ type: 'start', phase, format })}
           />
+        ) : (
+          <p className='start-hint' role='status'>
+            {playersNeeded > 0
+              ? 'Waiting for players to join.'
+              : 'Waiting for Host to start the game.'}
+          </p>
         )}
       </section>
     );
@@ -1433,7 +1459,6 @@ function Turn({
                 </span>
                 {view.vote && !entry.disqualified && (
                   <button
-                    className='outline'
                     disabled={!online || view.vote === entry.id}
                     aria-label={`Vote for ${entry.text}`}
                     aria-pressed={view.vote === entry.id}

@@ -37,6 +37,11 @@ export function WaitingHints() {
           setLeaving(false);
         }}
       >
+        <img
+          className='hint-icon'
+          src={new URL('./assets/win95-info.png', import.meta.url).href}
+          alt=''
+        />
         <span className='hint-copy'>
           {hints.map((hint) => (
             <span key={hint} className='hint-size-sample' aria-hidden='true'>

@@ -224,7 +224,7 @@ If everyone challenges, go straight to the scoring view, apply the same awards, 
 | prompt-020 | What’s the best way to relate to older generations?                                             |
 | prompt-021 | What’s the best way to sign off a professional email?                                           |
 | prompt-022 | What’s the best way to spend $25?                                                               |
-| prompt-023 | What’s the best celebrity on socials?                                                           |
+| prompt-023 | Who’s the best celebrity on socials?                                                            |
 | prompt-024 | What’s the best cold dish?                                                                      |
 | prompt-025 | What’s the best hot beverage?                                                                   |
 | prompt-026 | What’s the best cliche tattoo?                                                                  |

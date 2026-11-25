@@ -31,7 +31,7 @@ test('four seats reconnect, keep the Persona private, and share committed scorin
     const copyCode = host.getByRole('button', { name: 'Copy room code' })
     await expect(copyCode.locator('svg rect')).toHaveCount(1)
     await copyCode.click()
-    await expect(copyCode).toHaveCSS('background-color', 'rgb(28, 79, 134)')
+    await expect(copyCode).toHaveCSS('background-color', 'rgb(210, 227, 200)')
     await expect(copyCode.locator('svg rect')).toHaveCount(0)
     await expect(copyCode.locator('svg path')).toHaveAttribute('d', 'm5 12 4 4L19 6')
     expect(await host.evaluate(() => navigator.clipboard.readText())).toBe(code)
@@ -40,8 +40,14 @@ test('four seats reconnect, keep the Persona private, and share committed scorin
       await page.getByLabel('Room code').fill(code)
       await page.getByLabel('Screen name').fill(`Player ${index + 2}`)
       await page.getByRole('button', { name: 'Join room' }).click()
-      await expect(page.getByRole('heading', { name: 'Waiting room' })).toBeVisible()
+      await expect(page.getByRole('heading', { name: 'Lobby' })).toBeVisible()
       await expect(host.getByText(`Players needed: ${2 - index}`)).toBeVisible()
+      if (index === 0) {
+        await expect(page.getByText('Waiting for players to join.')).toBeVisible()
+      }
+    }
+    for (const guest of pages.slice(1)) {
+      await expect(guest.getByText('Waiting for Host to start the game.')).toBeVisible()
     }
     await expect(start).toBeEnabled()
     expect(await lobby.evaluate(card => card.getBoundingClientRect().height)).toBe(initialLobbyHeight)
@@ -80,7 +86,7 @@ test('four seats reconnect, keep the Persona private, and share committed scorin
     await expect(supporter.getByText('First to 100 points · Turn 1')).toHaveCount(0)
     await expect(host.getByRole('timer')).toHaveAccessibleName(/seconds remaining/)
     await expect(host.getByRole('timer')).toHaveText('')
-    await expect(host.locator('.timer svg path[stroke-dasharray]')).toHaveAttribute('stroke', '#1c4f86')
+    await expect(host.locator('.timer svg path[stroke-dasharray]')).toHaveAttribute('stroke', '#ffffff')
     await expect.poll(() => frames.every(messages => messages.some(message => message.includes('"phase":"answering"')))).toBe(true)
     await expect(answerer.getByRole('heading', { level: 1, name: /^“.+”$/ }))
       .toHaveCSS('text-align', 'center')
@@ -151,8 +157,8 @@ test('four seats reconnect, keep the Persona private, and share committed scorin
     await expect(selectedVote).toHaveAttribute('aria-pressed', 'true')
     await expect(selectedVote).toHaveText('✓')
     const duplicateButton = supporter.getByRole('button', { name: 'Report Duplicates' })
-    await expect(duplicateButton).toHaveCSS('color', 'rgb(156, 38, 61)')
-    await expect(duplicateButton).toHaveCSS('border-top-color', 'rgb(156, 38, 61)')
+    await expect(duplicateButton).toHaveCSS('color', 'rgb(133, 34, 56)')
+    await expect(duplicateButton).toHaveCSS('border-top-color', 'rgb(133, 34, 56)')
     await duplicateButton.click()
     const flagDialog = supporter.getByRole('dialog', { name: 'Flag duplicate answers' })
     const submitFlag = flagDialog.getByRole('button', { name: 'Submit flag' })
@@ -170,7 +176,7 @@ test('four seats reconnect, keep the Persona private, and share committed scorin
     const duplicateLabel = supporter.getByRole('listitem').filter({ hasText: '“Oslo”' })
       .getByText('Duplicate', { exact: true })
     await expect(duplicateLabel).toHaveCSS('display', 'inline')
-    await expect(duplicateLabel).toHaveCSS('color', 'rgb(156, 38, 61)')
+    await expect(duplicateLabel).toHaveCSS('color', 'rgb(133, 34, 56)')
     await expect(supporter.getByRole('button', { name: 'Vote for Paris' })).toHaveAttribute('aria-pressed', 'true')
 
     for (const [index, messages] of frames.entries()) {
@@ -222,7 +228,7 @@ test('four seats reconnect, keep the Persona private, and share committed scorin
     await menuToggle.click()
     const menu = host.getByRole('dialog', { name: 'Room menu' })
     await expect(menu.getByRole('heading')).toHaveCount(0)
-    await expect(menu.getByRole('button', { name: 'Close' })).toHaveCSS('justify-self', 'center')
+    await expect(menu.getByRole('button', { name: 'Close' })).toHaveCSS('position', 'absolute')
     await expect(menu.getByText(code, { exact: true })).toBeVisible()
     await host.evaluate(async () => {
       await navigator.clipboard.writeText('clipboard fallback test')
@@ -287,9 +293,9 @@ test('scoring transfers each award in sequence with a pause between rows', async
     totals.map(total => total.getBoundingClientRect().right)
   )
   expect(new Set(rightEdges).size).toBe(1)
-  await expect(changes.nth(0)).toHaveCSS('color', 'rgb(44, 100, 55)')
+  await expect(changes.nth(0)).toHaveCSS('color', 'rgb(34, 80, 41)')
   await expect(changes.nth(1)).toHaveCSS('color', 'rgb(0, 0, 0)')
-  await expect(changes.nth(2)).toHaveCSS('color', 'rgb(156, 38, 61)')
+  await expect(changes.nth(2)).toHaveCSS('color', 'rgb(133, 34, 56)')
   expect(await page.evaluate(roomCode => [
     localStorage.getItem(`popular-opinion:${roomCode}`),
     localStorage.getItem(`public-opinion:${roomCode}`)
@@ -452,6 +458,7 @@ test('the waiting room reserves space for all twelve seats', async ({ page, requ
   expect((await join('Player 13')).status()).toBe(409)
   await page.evaluate(() => window.scrollTo(0, 0))
   await expect(seats.last()).toBeInViewport({ ratio: 1 })
-  await expect(seats.nth(1)).toHaveCSS('background-color', 'rgb(243, 240, 237)')
+  await expect(seats.first()).toHaveCSS('background-color', 'rgb(218, 218, 218)')
+  await expect(seats.nth(1)).toHaveCSS('background-color', 'rgb(206, 206, 206)')
   await expect(seats.nth(1)).toHaveCSS('border-top-width', '0px')
 })

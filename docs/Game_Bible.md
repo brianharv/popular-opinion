@@ -173,16 +173,16 @@ If everyone challenges, go straight to the scoring view, apply the same awards, 
 | --------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
 | Four-player Troll, everyone challenges                                | Phase 2 skipped. Answering Player +33, challengers zero.                                                                    |
 | Four-player Troll, two challenges, one supporter switches             | Answering Player +9, challengers zero.                                                                                      |
-| Three submitted challenges, two disqualified                          | Troll still counts three. The Panderer penalty is −9. The Finsta deducts 3 from each challenger.                                    |
-| Four-player The Provocateur, everyone challenges                          | Answering Player −5, others zero.                                                                                           |
+| Three submitted challenges, two disqualified                          | Troll still counts three. The Panderer penalty is −9. The Finsta deducts 3 from each challenger.                            |
+| Four-player The Provocateur, everyone challenges                      | Answering Player −5, others zero.                                                                                           |
 | Four-player Suddenly Libertarian, everyone challenges                 | Skip Phase 2. Answering Player earns 4 points (3 × 3 − 5), others zero.                                                     |
-| The Ice Breaker starts at 2 points and nobody challenges                  | Apply the −3 award. Show a cumulative score of −1 in the standings.                                                         |
+| The Ice Breaker starts at 2 points and nobody challenges              | Apply the −3 award. Show a cumulative score of −1 in the standings.                                                         |
 | Answering Player submits Paris, then edits to Rome without submitting | Paris reveals as soon as the answer timer reaches zero.                                                                     |
-| Answering Player times out with no submission and The Troll           | Zero points and no Persona reveal on any opponent device.                                                                  |
+| Answering Player times out with no submission and The Troll           | Zero points and no Persona reveal on any opponent device.                                                                   |
 | Duplicate review paused at 6 or 14 seconds                            | Completed reviews restore 10 or 14 seconds respectively. Opening or canceling the selector leaves the voting clock running. |
 | Duplicates pass while a challenge holds a vote                        | Vote returns atomically to the original answer and the voter sees it.                                                       |
 | Five eligible duplicate voters, two yes and three no                  | Review fails. A separate case verifies missing ballots become yes at the deadline.                                          |
-| Four browser sessions inspect live updates and reconnect              | Private Persona and vote allocations appear only in the intended views before scoring.                                     |
+| Four browser sessions inspect live updates and reconnect              | Private Persona and vote allocations appear only in the intended views before scoring.                                      |
 | 50-point target, final totals 58, 50, and 49                          | Players at 58 and 50 qualify. Player at 49 does not.                                                                        |
 | Round-based final scheduled turn grants chained bonuses               | Play the chain before checking the standings.                                                                               |
 | Tiebreaker, duplicate review leaves one or zero answers               | One wins immediately. Zero draws a fresh Prompt.                                                                            |
@@ -198,181 +198,299 @@ If everyone challenges, go straight to the scoring view, apply the same awards, 
 
 ## Appendix — Prompt deck
 
-174 prompts in source order. “Worst habit” appears once. The IDs were assigned for this edition and can stay with their prompts through reordering and wording edits.
+292 prompts in source order. “Worst habit” appears once. The IDs were assigned for this edition and can stay with their prompts through reordering and wording edits.
 
-| ID         | Prompt                                                             |
-| ---------- | ------------------------------------------------------------------ |
-| prompt-001 | Best vacation destination                                          |
-| prompt-002 | Best on-screen performance                                         |
-| prompt-003 | Best cuisine                                                       |
-| prompt-004 | Best multiplayer video game                                        |
-| prompt-005 | Best one hit wonder                                                |
-| prompt-006 | Best time to go to bed                                             |
-| prompt-007 | Best time to wake up                                               |
-| prompt-008 | Best soda flavor                                                   |
-| prompt-009 | Best breakfast dish                                                |
-| prompt-010 | Best condiment                                                     |
-| prompt-011 | Best city                                                          |
-| prompt-012 | Best genre of music                                                |
-| prompt-013 | Best spoken accent                                                 |
-| prompt-014 | Best way to start the day                                          |
-| prompt-015 | Best extreme sport                                                 |
-| prompt-016 | Best song in a foreign language                                    |
-| prompt-017 | Best flavor of cake                                                |
-| prompt-018 | Best seafood dish                                                  |
-| prompt-019 | Best hiding place                                                  |
-| prompt-020 | Best way to relate with older generations                          |
-| prompt-021 | Best way to sign off a professional email                          |
-| prompt-022 | Best way to spend $25                                              |
-| prompt-023 | Best celebrity on socials                                          |
-| prompt-024 | Best cold dish                                                     |
-| prompt-025 | Best hot beverage                                                  |
-| prompt-026 | Best cliche tattoo                                                 |
-| prompt-027 | Best method of execution                                           |
-| prompt-028 | Best animated movie villain                                        |
-| prompt-029 | Best basketball player                                             |
-| prompt-030 | Best film franchise                                                |
-| prompt-031 | Best amendment to the US constitution                              |
-| prompt-032 | Best ninja weapon                                                  |
-| prompt-033 | Best theme park                                                    |
-| prompt-034 | Best non-dairy milk                                                |
-| prompt-035 | Best one-word title movie                                          |
-| prompt-036 | Best source of protein                                             |
-| prompt-037 | Best video game console                                            |
-| prompt-038 | Best tech company                                                  |
-| prompt-039 | Best allergy                                                       |
-| prompt-040 | Best species of pet                                                |
-| prompt-041 | Best fashion accessory                                             |
-| prompt-042 | Best way to make someone anxious                                   |
-| prompt-043 | Best thing to do on a sick day                                     |
-| prompt-044 | Best cozy meal                                                     |
-| prompt-045 | Best species of dinosaur                                           |
-| prompt-046 | Best food that vegans, vegetarians, omnivores, etc. can share      |
-| prompt-047 | Best nursery rhyme                                                 |
-| prompt-048 | Best fairy tale                                                    |
-| prompt-049 | Best-smelling plant                                                |
-| prompt-050 | Best country to visit                                              |
-| prompt-051 | Best sitcom                                                        |
-| prompt-052 | Best seasonal treat                                                |
-| prompt-053 | Best movie soundtrack                                              |
-| prompt-054 | Best word                                                          |
-| prompt-055 | Best instance of nepotism                                          |
-| prompt-056 | Best actor to portray James Bond                                   |
-| prompt-057 | Best American                                                      |
-| prompt-058 | Best stereotype                                                    |
-| prompt-059 | Best Disney princess                                               |
-| prompt-060 | Best day of the year                                               |
-| prompt-061 | Best Andrew                                                        |
-| prompt-062 | Best Jennifer                                                      |
-| prompt-063 | Best weather                                                       |
-| prompt-064 | Best adult animated series                                         |
-| prompt-065 | Best comic strip                                                   |
-| prompt-066 | Best card game that uses a standard deck                           |
-| prompt-067 | Best mononymous performer                                          |
-| prompt-068 | Best pseudonym                                                     |
-| prompt-069 | Best compliment to a stranger                                      |
-| prompt-070 | Best celebration for accomplishing a menial task                   |
-| prompt-071 | Best punishment for forgetting a significant other’s birthday      |
-| prompt-072 | Best instrumental piece of music                                   |
-| prompt-073 | Best medicine                                                      |
-| prompt-074 | Best fictional weapon                                              |
-| prompt-075 | Best superpower                                                    |
-| prompt-076 | Best conspiracy theory                                             |
-| prompt-077 | Best fictional family                                              |
-| prompt-078 | Best talking animal                                                |
-| prompt-079 | Best thing to say after someone sneezes and farts at the same time |
-| prompt-080 | Best example of a fundamental                                      |
-| prompt-081 | Best pasta shape                                                   |
-| prompt-082 | Best Christmas song                                                |
-| prompt-083 | Best album for a laser show                                        |
-| prompt-084 | Best fictional city                                                |
-| prompt-085 | Best video game adaptation                                         |
-| prompt-086 | Best month                                                         |
-| prompt-087 | Best reason for calling in sick                                    |
-| prompt-088 | Best cryptid                                                       |
-| prompt-089 | Best vegetable                                                     |
-| prompt-090 | Best hiding place for a diary                                      |
-| prompt-091 | Best way to appear scary                                           |
-| prompt-092 | Best stage of grief                                                |
-| prompt-093 | Best logo                                                          |
-| prompt-094 | Best movie monster                                                 |
-| prompt-095 | Best children’s TV show                                            |
-| prompt-096 | Best name to shout angrily                                         |
-| prompt-097 | Best song by a bad band/artist                                     |
-| prompt-098 | Best unresolved mystery                                            |
-| prompt-099 | Best song to accompany night driving                               |
-| prompt-100 | Best practical joke                                                |
-| prompt-101 | Best old-timey malady                                              |
-| prompt-102 | Worst soft drink flavor                                            |
-| prompt-103 | Worst character on Friends                                         |
-| prompt-104 | Worst song everyone knows                                          |
-| prompt-105 | Worst movie franchise                                              |
-| prompt-106 | Worst car manufacturer                                             |
-| prompt-107 | Worst spice/seasoning                                              |
-| prompt-108 | Worst famous singer                                                |
-| prompt-109 | Worst band with an umlaut in its name                              |
-| prompt-110 | Worst city to visit in the summer                                  |
-| prompt-111 | Worst way to spend $25                                             |
-| prompt-112 | Worst subscription service                                         |
-| prompt-113 | Worst streaming platform                                           |
-| prompt-114 | Worst part of raising an infant                                    |
-| prompt-115 | Worst music genre                                                  |
-| prompt-116 | Worst school subject                                               |
-| prompt-117 | Worst on-screen death                                              |
-| prompt-118 | Worst thing that makes you happy                                   |
-| prompt-119 | Worst relationship advice                                          |
-| prompt-120 | Worst fate worse than death                                        |
-| prompt-121 | Worst time to turn on the big game                                 |
-| prompt-122 | Worst spoken accent                                                |
-| prompt-123 | Worst kind of vacation                                             |
-| prompt-124 | Worst euphemism                                                    |
-| prompt-125 | Worst sound                                                        |
-| prompt-126 | Worst TV show                                                      |
-| prompt-127 | Worst fast food restaurant                                         |
-| prompt-128 | Worst hand gesture                                                 |
-| prompt-129 | Worst hot beverage                                                 |
-| prompt-130 | Worst grocery store chain                                          |
-| prompt-131 | Worst airport                                                      |
-| prompt-132 | Worst William                                                      |
-| prompt-133 | Worst Elizabeth                                                    |
-| prompt-134 | Worst conventional weapon                                          |
-| prompt-135 | Worst dessert                                                      |
-| prompt-136 | Worst excuse                                                       |
-| prompt-137 | Worst condiment                                                    |
-| prompt-138 | Worst fandom/fanbase                                               |
-| prompt-139 | Worst exercise                                                     |
-| prompt-140 | Worst established role model                                       |
-| prompt-141 | Worst sport                                                        |
-| prompt-142 | Worst ice cream flavor                                             |
-| prompt-143 | Worst hobby                                                        |
-| prompt-144 | Worst habit                                                        |
-| prompt-145 | Worst US city                                                      |
-| prompt-146 | Worst performance                                                  |
-| prompt-147 | Worst book of the Bible                                            |
-| prompt-148 | Worst movie in the James Bond franchise                            |
-| prompt-149 | Worst Tom Clancy adaptation                                        |
-| prompt-150 | Worst fictional universe                                           |
-| prompt-151 | Worst superhero                                                    |
-| prompt-152 | Worst Canadian                                                     |
-| prompt-153 | Worst stereotype                                                   |
-| prompt-154 | Worst Disney princess                                              |
-| prompt-155 | Worst salad dressing                                               |
-| prompt-156 | Worst Starbucks menu item                                          |
-| prompt-157 | Worst day of the year                                              |
-| prompt-158 | Worst day of the week                                              |
-| prompt-159 | Worst Christmas movie                                              |
-| prompt-160 | Worst tourist destination                                          |
-| prompt-161 | Worst animal                                                       |
-| prompt-162 | Worst song by a good band/artist                                   |
-| prompt-163 | Worst Christmas song                                               |
-| prompt-164 | Worst viral trend                                                  |
-| prompt-165 | Worst smell                                                        |
-| prompt-166 | Worst planet                                                       |
-| prompt-167 | Worst mascot                                                       |
-| prompt-168 | Worst team name                                                    |
-| prompt-169 | Worst color                                                        |
-| prompt-170 | Worst fish                                                         |
-| prompt-171 | Worst utensil                                                      |
-| prompt-172 | Worst book                                                         |
-| prompt-173 | Worst piece of furniture                                           |
-| prompt-174 | Worst Olympic event                                                |
+| ID         | Prompt                                                                                          |
+| ---------- | ----------------------------------------------------------------------------------------------- |
+| prompt-001 | What’s the best vacation destination?                                                           |
+| prompt-002 | What’s the best on-screen performance?                                                          |
+| prompt-003 | What’s the best cuisine?                                                                        |
+| prompt-004 | What’s the best multiplayer video game?                                                         |
+| prompt-005 | What’s the best one hit wonder?                                                                 |
+| prompt-006 | What’s the best time to go to bed?                                                              |
+| prompt-007 | What’s the best time to wake up?                                                                |
+| prompt-008 | What’s the best soda flavor?                                                                    |
+| prompt-009 | What’s the best breakfast dish?                                                                 |
+| prompt-010 | What’s the best condiment?                                                                      |
+| prompt-011 | What’s the best city?                                                                           |
+| prompt-012 | What’s the best genre of music?                                                                 |
+| prompt-013 | What’s the best spoken accent?                                                                  |
+| prompt-014 | What’s the best way to start the day?                                                           |
+| prompt-015 | What’s the best extreme sport?                                                                  |
+| prompt-016 | What’s the best song in a foreign language?                                                     |
+| prompt-017 | What’s the best flavor of cake?                                                                 |
+| prompt-018 | What’s the best seafood dish?                                                                   |
+| prompt-019 | What’s the best hiding place?                                                                   |
+| prompt-020 | What’s the best way to relate to older generations?                                             |
+| prompt-021 | What’s the best way to sign off a professional email?                                           |
+| prompt-022 | What’s the best way to spend $25?                                                               |
+| prompt-023 | What’s the best celebrity on socials?                                                           |
+| prompt-024 | What’s the best cold dish?                                                                      |
+| prompt-025 | What’s the best hot beverage?                                                                   |
+| prompt-026 | What’s the best cliche tattoo?                                                                  |
+| prompt-027 | What’s the best method of execution?                                                            |
+| prompt-028 | Who’s the best animated movie villain?                                                          |
+| prompt-029 | Who’s the best basketball player?                                                               |
+| prompt-030 | What’s the best film franchise?                                                                 |
+| prompt-031 | What’s the best amendment to the US constitution?                                               |
+| prompt-032 | What’s the best ninja weapon?                                                                   |
+| prompt-033 | What’s the best theme park?                                                                     |
+| prompt-034 | What’s the best non-dairy milk?                                                                 |
+| prompt-035 | What’s the best movie with a one-word title?                                                    |
+| prompt-036 | What’s the best source of protein?                                                              |
+| prompt-037 | What’s the best video game console?                                                             |
+| prompt-038 | What’s the best tech company?                                                                   |
+| prompt-039 | What’s the best allergy?                                                                        |
+| prompt-040 | What’s the best species of pet?                                                                 |
+| prompt-041 | What’s the best fashion accessory?                                                              |
+| prompt-042 | What’s the best way to make someone anxious?                                                    |
+| prompt-043 | What’s the best thing to do on a sick day?                                                      |
+| prompt-044 | What’s the best cozy meal?                                                                      |
+| prompt-045 | What’s the best species of dinosaur?                                                            |
+| prompt-046 | What’s the best food that vegans, vegetarians, and omnivores can share?                         |
+| prompt-047 | What’s the best nursery rhyme?                                                                  |
+| prompt-048 | What’s the best fairy tale?                                                                     |
+| prompt-049 | Which plant smells the best?                                                                    |
+| prompt-050 | What’s the best country to visit?                                                               |
+| prompt-051 | What’s the best sitcom?                                                                         |
+| prompt-052 | What’s the best seasonal treat?                                                                 |
+| prompt-053 | What’s the best movie soundtrack?                                                               |
+| prompt-054 | What’s the best word?                                                                           |
+| prompt-055 | What’s the best instance of nepotism?                                                           |
+| prompt-056 | Who’s the best actor to portray James Bond?                                                     |
+| prompt-057 | Who’s the best American?                                                                        |
+| prompt-058 | What’s the best stereotype?                                                                     |
+| prompt-059 | Who’s the best Disney princess?                                                                 |
+| prompt-060 | What’s the best day of the year?                                                                |
+| prompt-061 | Who’s the best Andrew?                                                                          |
+| prompt-062 | Who’s the best Jennifer?                                                                        |
+| prompt-063 | What’s the best weather?                                                                        |
+| prompt-064 | What’s the best adult animated series?                                                          |
+| prompt-065 | What’s the best comic strip?                                                                    |
+| prompt-066 | What’s the best card game that uses a standard deck?                                            |
+| prompt-067 | Who’s the best mononymous performer?                                                            |
+| prompt-068 | What’s the best pseudonym?                                                                      |
+| prompt-069 | What’s the best compliment to a stranger?                                                       |
+| prompt-070 | What’s the best celebration for accomplishing a menial task?                                    |
+| prompt-071 | What’s the best punishment for forgetting a significant other’s birthday?                       |
+| prompt-072 | What’s the best instrumental piece of music?                                                    |
+| prompt-073 | What’s the best medicine?                                                                       |
+| prompt-074 | What’s the best fictional weapon?                                                               |
+| prompt-075 | What’s the best superpower?                                                                     |
+| prompt-076 | What’s the best conspiracy theory?                                                              |
+| prompt-077 | What’s the best fictional family?                                                               |
+| prompt-078 | Who’s the best talking animal?                                                                  |
+| prompt-079 | What’s the best thing to say after someone sneezes and farts at the same time?                  |
+| prompt-080 | What’s the best example of a fundamental?                                                       |
+| prompt-081 | What’s the best pasta shape?                                                                    |
+| prompt-082 | What’s the best Christmas song?                                                                 |
+| prompt-083 | What’s the best album for a laser show?                                                         |
+| prompt-084 | What’s the best fictional city?                                                                 |
+| prompt-085 | What’s the best video game adaptation?                                                          |
+| prompt-086 | What’s the best month?                                                                          |
+| prompt-087 | What’s the best reason for calling in sick?                                                     |
+| prompt-088 | What’s the best cryptid?                                                                        |
+| prompt-089 | What’s the best vegetable?                                                                      |
+| prompt-090 | What’s the best hiding place for a diary?                                                       |
+| prompt-091 | What’s the best way to appear scary?                                                            |
+| prompt-092 | What’s the best stage of grief?                                                                 |
+| prompt-093 | What’s the best logo?                                                                           |
+| prompt-094 | What’s the best movie monster?                                                                  |
+| prompt-095 | What’s the best children’s TV show?                                                             |
+| prompt-096 | What’s the best name to shout angrily?                                                          |
+| prompt-097 | What’s the best song by a bad band/artist?                                                      |
+| prompt-098 | What’s the best unresolved mystery?                                                             |
+| prompt-099 | What’s the best song to accompany night driving?                                                |
+| prompt-100 | What’s the best practical joke?                                                                 |
+| prompt-101 | What’s the best old-timey malady?                                                               |
+| prompt-102 | What’s the worst soft drink flavor?                                                             |
+| prompt-103 | Who’s the worst character on Friends?                                                           |
+| prompt-104 | What’s the worst song everyone knows?                                                           |
+| prompt-105 | What’s the worst movie franchise?                                                               |
+| prompt-106 | What’s the worst car manufacturer?                                                              |
+| prompt-107 | What’s the worst spice/seasoning?                                                               |
+| prompt-108 | Who’s the worst famous singer?                                                                  |
+| prompt-109 | What’s the worst band with an umlaut in its name?                                               |
+| prompt-110 | What’s the worst city to visit in the summer?                                                   |
+| prompt-111 | What’s the worst way to spend $25?                                                              |
+| prompt-112 | What’s the worst subscription service?                                                          |
+| prompt-113 | What’s the worst streaming platform?                                                            |
+| prompt-114 | What’s the worst part of raising an infant?                                                     |
+| prompt-115 | What’s the worst music genre?                                                                   |
+| prompt-116 | What’s the worst school subject?                                                                |
+| prompt-117 | What’s the worst on-screen death?                                                               |
+| prompt-118 | What’s the worst thing that makes you happy?                                                    |
+| prompt-119 | What’s the worst relationship advice?                                                           |
+| prompt-120 | What’s the worst fate worse than death?                                                         |
+| prompt-121 | What’s the worst time to turn on the big game?                                                  |
+| prompt-122 | What’s the worst spoken accent?                                                                 |
+| prompt-123 | What’s the worst kind of vacation?                                                              |
+| prompt-124 | What’s the worst euphemism?                                                                     |
+| prompt-125 | What’s the worst sound?                                                                         |
+| prompt-126 | What’s the worst TV show?                                                                       |
+| prompt-127 | What’s the worst fast food restaurant?                                                          |
+| prompt-128 | What’s the worst hand gesture?                                                                  |
+| prompt-129 | What’s the worst hot beverage?                                                                  |
+| prompt-130 | What’s the worst grocery store chain?                                                           |
+| prompt-131 | What’s the worst airport?                                                                       |
+| prompt-132 | Who’s the worst William?                                                                        |
+| prompt-133 | Who’s the worst Elizabeth?                                                                      |
+| prompt-134 | What’s the worst conventional weapon?                                                           |
+| prompt-135 | What’s the worst dessert?                                                                       |
+| prompt-136 | What’s the worst excuse?                                                                        |
+| prompt-137 | What’s the worst condiment?                                                                     |
+| prompt-138 | What’s the worst fandom/fanbase?                                                                |
+| prompt-139 | What’s the worst exercise?                                                                      |
+| prompt-140 | Who’s the worst established role model?                                                         |
+| prompt-141 | What’s the worst sport?                                                                         |
+| prompt-142 | What’s the worst ice cream flavor?                                                              |
+| prompt-143 | What’s the worst hobby?                                                                         |
+| prompt-144 | What’s the worst habit?                                                                         |
+| prompt-145 | What’s the worst US city?                                                                       |
+| prompt-146 | What’s the worst performance?                                                                   |
+| prompt-147 | What’s the worst book of the Bible?                                                             |
+| prompt-148 | What’s the worst movie in the James Bond franchise?                                             |
+| prompt-149 | What’s the worst Tom Clancy adaptation?                                                         |
+| prompt-150 | What’s the worst fictional universe?                                                            |
+| prompt-151 | Who’s the worst superhero?                                                                      |
+| prompt-152 | Who’s the worst Canadian?                                                                       |
+| prompt-153 | What’s the worst stereotype?                                                                    |
+| prompt-154 | Who’s the worst Disney princess?                                                                |
+| prompt-155 | What’s the worst salad dressing?                                                                |
+| prompt-156 | What’s the worst Starbucks menu item?                                                           |
+| prompt-157 | What’s the worst day of the year?                                                               |
+| prompt-158 | What’s the worst day of the week?                                                               |
+| prompt-159 | What’s the worst Christmas movie?                                                               |
+| prompt-160 | What’s the worst tourist destination?                                                           |
+| prompt-161 | What’s the worst animal?                                                                        |
+| prompt-162 | What’s the worst song by a good band/artist?                                                    |
+| prompt-163 | What’s the worst Christmas song?                                                                |
+| prompt-164 | What’s the worst viral trend?                                                                   |
+| prompt-165 | What’s the worst smell?                                                                         |
+| prompt-166 | What’s the worst planet?                                                                        |
+| prompt-167 | What’s the worst mascot?                                                                        |
+| prompt-168 | What’s the worst team name?                                                                     |
+| prompt-169 | What’s the worst color?                                                                         |
+| prompt-170 | What’s the worst fish?                                                                          |
+| prompt-171 | What’s the worst utensil?                                                                       |
+| prompt-172 | What’s the worst book?                                                                          |
+| prompt-173 | What’s the worst piece of furniture?                                                            |
+| prompt-174 | What’s the worst Olympic event?                                                                 |
+| prompt-175 | What’s the least interesting job?                                                               |
+| prompt-176 | What’s the best way to relax after work?                                                        |
+| prompt-177 | What’s the rudest way to respond to a compliment?                                               |
+| prompt-178 | What’s the oldest trick in the book?                                                            |
+| prompt-179 | What’s the best crime to be convicted of?                                                       |
+| prompt-180 | Who’s the nicest person playing this game?                                                      |
+| prompt-181 | What’s the least motivating thing a teacher could say?                                          |
+| prompt-182 | What’s the solution to our problem?                                                             |
+| prompt-183 | Who probably has the worst penmanship here?                                                     |
+| prompt-184 | What’s the worst book people claim to enjoy?                                                    |
+| prompt-185 | Who’s the funniest person?                                                                      |
+| prompt-186 | What’s the tackiest trend of the last 10 years?                                                 |
+| prompt-187 | What’s the best way to get over a crush?                                                        |
+| prompt-188 | What’s the worst thing you could do legally?                                                    |
+| prompt-189 | Who’s the worst Greek philosopher?                                                              |
+| prompt-190 | What’s the worst chore?                                                                         |
+| prompt-191 | Which celebrity would be the most fun to hang out with?                                         |
+| prompt-192 | Who is clearly ripping off someone else?                                                        |
+| prompt-193 | If someone asks “Where were you?”, what’s the most suspicious response?                         |
+| prompt-194 | What’s the most overrated book?                                                                 |
+| prompt-195 | What’s the worst location for a first date?                                                     |
+| prompt-196 | What’s the best thing to say when someone knocks on the bathroom door?                          |
+| prompt-197 | What’s the best birthday?                                                                       |
+| prompt-198 | What’s the lamest milestone to celebrate?                                                       |
+| prompt-199 | Who’s the classiest person ever?                                                                |
+| prompt-200 | What’s the most famous animal?                                                                  |
+| prompt-201 | What has the worst name?                                                                        |
+| prompt-202 | What tradition needs to die?                                                                    |
+| prompt-203 | What needs to come back?                                                                        |
+| prompt-204 | What restaurant has the best burger?                                                            |
+| prompt-205 | What’s the clearest sign someone is insecure?                                                   |
+| prompt-206 | What’s the worst uniform?                                                                       |
+| prompt-207 | What’s the best uniform?                                                                        |
+| prompt-208 | Who’s the best rock star?                                                                       |
+| prompt-209 | Who’s the best soul singer?                                                                     |
+| prompt-210 | What’s the most irritating song?                                                                |
+| prompt-211 | What does everyone need to calm down about?                                                     |
+| prompt-212 | What’s the cure for the male loneliness epidemic?                                               |
+| prompt-213 | What makes you instantly lose respect for someone?                                              |
+| prompt-214 | What should be punishable by law?                                                               |
+| prompt-215 | What’s the worst way to try to look cool?                                                       |
+| prompt-216 | What do you have to learn the hard way?                                                         |
+| prompt-217 | Who’s the worst person you think still has a point?                                             |
+| prompt-218 | Who are you convinced is a monster even though you have no proof?                               |
+| prompt-219 | What’s the worst musical?                                                                       |
+| prompt-220 | What’s the best musical?                                                                        |
+| prompt-221 | What should people just keep to themselves?                                                     |
+| prompt-222 | What’s the best thing to yell before you jump off something really high up?                     |
+| prompt-223 | What skill do you find unimpressive?                                                            |
+| prompt-224 | What line do people need to stop quoting?                                                       |
+| prompt-225 | Which living person most deserves a statue?                                                     |
+| prompt-226 | What’s the best As Seen On TV product?                                                          |
+| prompt-227 | What’s the worst candy?                                                                         |
+| prompt-228 | What’s the socially acceptable maximum amount of a party sub you can eat at a social gathering? |
+| prompt-229 | How many eggs is too many for one meal?                                                         |
+| prompt-230 | What’s the best cereal?                                                                         |
+| prompt-231 | What’s the worst Pokémon?                                                                       |
+| prompt-232 | Who’s the best stand-up comedian?                                                               |
+| prompt-233 | What’s a job that’s harder than most people think?                                              |
+| prompt-234 | What injury has the best name?                                                                  |
+| prompt-235 | What has the wrong name?                                                                        |
+| prompt-236 | What word needs to have its own spelling corrected?                                             |
+| prompt-237 | What is something everyone 13 and over needs to know how to do?                                 |
+| prompt-238 | What’s something you know but you can’t prove?                                                  |
+| prompt-239 | What’s a conspiracy theory dumber than Flat Earth?                                              |
+| prompt-240 | What should the Man in the Moon’s legal name be?                                                |
+| prompt-241 | What is an item that belongs in a fridge but not in a mini-fridge?                              |
+| prompt-242 | Which billionaire’s bunker will be found first?                                                 |
+| prompt-243 | Which US president should take Benjamin Franklin’s place on the $100 bill?                      |
+| prompt-244 | Which actor hasn’t played the Joker but would do a good job?                                    |
+| prompt-245 | Who just isn’t funny?                                                                           |
+| prompt-246 | What’s the smallest animal that would win a fight to the death against the strongest person in the room? |
+| prompt-247 | How old is too old to call your parents mommy and daddy?                                        |
+| prompt-248 | What is something all men need to know how to do?                                               |
+| prompt-249 | What is something all women need to know how to do?                                             |
+| prompt-250 | What rule shouldn’t exist?                                                                      |
+| prompt-251 | What would Jesus have to say about AI girlfriends?                                              |
+| prompt-252 | What’s the worst thing a therapist has said to you?                                             |
+| prompt-253 | What’s the most overrated food?                                                                 |
+| prompt-254 | What is always funny?                                                                           |
+| prompt-255 | What is Rob Schneider’s least irritating role?                                                  |
+| prompt-256 | What is the lamest mythical creature?                                                           |
+| prompt-257 | What’s the worst constellation?                                                                 |
+| prompt-258 | What is basically just poison?                                                                  |
+| prompt-259 | What taste is most worth acquiring?                                                             |
+| prompt-260 | Who’s just faking it?                                                                           |
+| prompt-261 | What’s the lamest thing you would spend $1000 on if you had it to spare?                        |
+| prompt-262 | What do you complain about that makes you look pathetic?                                        |
+| prompt-263 | What interest of yours are you certain no one here wants to talk about?                         |
+| prompt-264 | What is the smuttiest thing you have read?                                                      |
+| prompt-265 | What badly needs an age limit?                                                                  |
+| prompt-266 | What’s the best movie that is also really boring?                                               |
+| prompt-267 | What is the definitive ‘Dad movie’?                                                             |
+| prompt-268 | What tattoo should be retired?                                                                  |
+| prompt-269 | What’s the first song that should be inducted into the Wedding Reception Hall of Fame?          |
+| prompt-270 | What tradition should be more widely celebrated?                                                |
+| prompt-271 | What has no reason to be so hard to clean?                                                      |
+| prompt-272 | What is the best Disneyland attraction?                                                         |
+| prompt-273 | Which live-action adaptation of an animated Disney film is the best?                            |
+| prompt-274 | How many times is too many to see a given movie in the theatre?                                 |
+| prompt-275 | Which holiday needs more songs?                                                                 |
+| prompt-276 | What is the quintessential road trip food?                                                      |
+| prompt-277 | What job actually doesn’t sound so bad?                                                         |
+| prompt-278 | What baseball player has the best name?                                                         |
+| prompt-279 | What’s the most fake-sounding sports position?                                                  |
+| prompt-280 | What isn’t the name of a car model but should be?                                               |
+| prompt-281 | What is the most obvious choice?                                                                |
+| prompt-282 | What just sounds made up?                                                                       |
+| prompt-283 | What’s the best word for farting that you just made up?                                         |
+| prompt-284 | What needs to be socially acceptable?                                                           |
+| prompt-285 | Who’s the smoothest operator?                                                                   |
+| prompt-286 | We have snake eyes. What should rolling two 3s be called?                                       |
+| prompt-287 | What is the worst hairstyle?                                                                    |
+| prompt-288 | How many 2-ply toilet paper squares is too many to use at once?                                 |
+| prompt-289 | What is your most mediocre accomplishment?                                                      |
+| prompt-290 | What’s the most irrational fear you’ll admit to having?                                         |
+| prompt-291 | What should we be allowed to shame people for?                                                  |
+| prompt-292 | What US state has the worst name?                                                               |

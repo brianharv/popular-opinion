@@ -373,7 +373,7 @@ test('waiting hints wrap in order and keep their place when the prompt appears',
         players: [{ id: 'a', name: 'Alice' }, { id: 'b', name: 'Bea' }],
         serverTime: now, deadline: now + 10_000, phaseDuration: 10_000, entries: [],
         previewWait: phase === 'persona-preview' ? { deadline: now + 10_000, duration: 10_000 } : undefined,
-        prompt: phase === 'persona-preview' ? undefined : 'Best vacation destination'
+        prompt: phase === 'persona-preview' ? undefined : 'What’s the best vacation destination?'
       } } satisfies ServerMessage))
     }
     ws.onMessage(() => showPhase('persona-preview'))
@@ -394,7 +394,7 @@ test('waiting hints wrap in order and keep their place when the prompt appears',
   await expect(visibleHint).toContainText('Provided there is enough time')
   expect(await waitingCard.evaluate(card => card.getBoundingClientRect().top)).toBe(waitingCardTop)
   showPhase('answering')
-  await expect(waitingCard.getByRole('heading', { name: '“Best vacation destination”' })).toBeVisible()
+  await expect(waitingCard.getByRole('heading', { name: '“What’s the best vacation destination?”' })).toBeVisible()
   await expect(visibleHint).toContainText('Provided there is enough time')
   showPhase('response')
   await expect(hint).toHaveCount(0)

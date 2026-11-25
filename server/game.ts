@@ -21,7 +21,7 @@ export const durations = {
   'final-votes': 5_000,
   scoring: 10_000
 };
-export const fixtureDraw = (prompt = 'Best vacation destination'): { prompt: string; persona: Persona } => ({
+export const fixtureDraw = (prompt = 'What’s the best vacation destination?'): { prompt: string; persona: Persona } => ({
   prompt,
   persona: personas.find(({ name }) => name === 'The Troll')!
 });

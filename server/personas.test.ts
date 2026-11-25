@@ -7,6 +7,16 @@ const challenges = [
   { id: 'y', authorId: 'c', text: 'Rome' }
 ];
 
+test('The Panderer earns a five-point bonus when nobody challenges', () => {
+  expect(scorePersona('The Panderer', 'a', players.slice(0, 4), [], {}, 3).awards)
+    .toEqual({ a: 17, b: 0, c: 0, d: 0 });
+});
+
+test('The Provocateur doubles points when challengers receive no votes', () => {
+  expect(scorePersona('The Provocateur', 'a', players, challenges, { x: 0, y: 0 }, 3).awards)
+    .toEqual({ a: 20, b: 0, c: 0, d: 0, e: 0, f: 0 });
+});
+
 test.each([
   ['Painfully Earnest', 7, 4, false],
   ['The Panderer', 4, 4, false],
@@ -16,13 +26,17 @@ test.each([
   ['The Bipartisan', 10, 0, false],
   ['Yojimbo', 10, 0, false],
   ['Sir John Falstaff', 9, 4, false],
-  ['Suddenly Libertarian', 1, 4, false],
+  ['Suddenly Libertarian', 6, 4, false],
   ['The Finsta', 8, 1, false],
   ['The Double Down', 8, 4, true],
   ['The Ambien Defense', 7, 4, false],
   ['The Daydreamer', 7, 4, false],
   ['The Karma Farmer', 4, 4, true],
-  ['Ken M.', 4, -2, true]
+  ['Ken M.', 4, -2, true],
+  ['TL;DR', 2, 5, false],
+  ['Portia, Reader of the Papers', 6, 4, true],
+  ['Good Bot', 4, 4, false],
+  ['Mr. Agreeable', 4, 4, false]
 ] as const)(
   '%s scores a tied challenger ballot',
   (name, answering, challenger, bonusTurn) => {
@@ -65,15 +79,29 @@ test('The Daydreamer copies the highest challenger award and adds three', () => 
   expect(scorePersona('The Daydreamer', 'a', players, [], {}, 5).awards.a).toBe(3);
 });
 
+test('the new challenger rules preserve the distinct tallies', () => {
+  const roster = [...players, 'g'];
+  const totals = { x: 2, y: 1 };
+  expect(scorePersona('TL;DR', 'a', roster, challenges, totals, 1).awards)
+    .toMatchObject({ a: 2, b: 10, c: 3 });
+  expect(scorePersona('Mr. Agreeable', 'a', roster, challenges, totals, 1).awards)
+    .toMatchObject({ a: 8, b: 8, c: 0 });
+});
+
+test('FIFA President rounds up the award for every initial supporter', () => {
+  expect(scorePersona('FIFA President', 'a', players, challenges, { x: 1, y: 1 }, 1).awards)
+    .toEqual({ a: 5, b: 0, c: 0, d: 3, e: 3, f: 3 });
+});
+
 test('only the confirmed exceptions score when everyone challenges', () => {
   const allChallenges = [
     ...challenges,
     { id: 'z', authorId: 'd', text: 'Oslo' }
   ];
   const overrides: Record<string, number> = {
-    'The Troll': 33,
+    'The Troll': 22,
     'The Provocateur': -5,
-    'Suddenly Libertarian': 4,
+    'Suddenly Libertarian': 9,
     'Ken M.': 6
   };
   for (const { name } of personas) {
@@ -95,7 +123,7 @@ test('only the confirmed exceptions score when everyone challenges', () => {
   }
 });
 
-test('disqualified challenges still count and The Finsta deducts from each', () => {
+test('disqualified challenges still count and The Finsta leaves their awards at zero', () => {
   const entries = [
     ...challenges.map((entry) => ({ ...entry, disqualified: true })),
     { id: 'z', authorId: 'd', text: 'Oslo' }
@@ -104,13 +132,23 @@ test('disqualified challenges still count and The Finsta deducts from each', () 
     scorePersona(name, 'a', players, entries, { x: 0, y: 0, z: 1 }, 1).awards;
   expect(score('The Troll').a).toBe(6);
   expect(score('The Panderer').a).toBe(-2);
-  expect(score('The Finsta')).toEqual({ a: 8, b: -3, c: -3, d: 1, e: 0, f: 0 });
+  expect(score('The Finsta')).toEqual({ a: 8, b: 0, c: 0, d: 1, e: 0, f: 0 });
   expect(score('Ken M.')).toEqual({ a: 6, b: -2, c: -2, d: -2, e: 0, f: 0 });
+});
+
+test('Suddenly Libertarian triples retained votes when they outnumber challengers', () => {
+  expect(scorePersona('Suddenly Libertarian', 'a', players, challenges, { x: 0, y: 0 }, 3).awards)
+    .toEqual({ a: 9, b: 0, c: 0, d: 0, e: 0, f: 0 });
 });
 
 test('The Finsta awards no bonus when round points are tied after deductions', () => {
   expect(scorePersona('The Finsta', 'a', [...players, 'g', 'h', 'i'], challenges, { x: 3, y: 0 }, 3).awards)
-    .toMatchObject({ a: 9, b: 9, c: -3 });
+    .toMatchObject({ a: 9, b: 9, c: 0 });
+});
+
+test('The Finsta floors a positive challenger award below three at zero', () => {
+  expect(scorePersona('The Finsta', 'a', players, challenges, { x: 2, y: 1 }, 0).awards)
+    .toMatchObject({ a: 0, b: 5, c: 0 });
 });
 
 test('a challenger lead earns Ambien a bonus and wipes out The Double Down', () => {

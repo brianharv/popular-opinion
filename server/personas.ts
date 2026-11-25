@@ -8,7 +8,7 @@ export const personas = [
   },
   {
     name: 'The Panderer',
-    rule: 'Score 3 points per support vote plus 1 point per retained vote. Subtract 3 points per challenger. Gain 10 bonus points if nobody challenged.'
+    rule: 'Score 3 points per support vote plus 1 point per retained vote. Subtract 3 points per challenger. Gain 5 bonus points if nobody challenged.'
   },
   {
     name: 'The Ice Breaker',
@@ -16,11 +16,11 @@ export const personas = [
   },
   {
     name: 'The Troll',
-    rule: 'Earn 2 points per challenger. Earn an additional 5 points if you retain zero votes. Triple your score this round if everyone challenges. Lose 5 points if nobody challenges. Challengers earn no points.'
+    rule: 'Earn 2 points per challenger. Earn an additional 5 points if you retain zero votes. Double your score this round if everyone challenges. Challengers earn no points.'
   },
   {
     name: 'The Provocateur',
-    rule: '2 points per challenger plus 2 points per retained vote. Triple if at least one opponent challenges and no challenger receives a vote. If every opponent challenges, lose 5 points instead.'
+    rule: '2 points per challenger plus 2 points per retained vote. Double your points if at least one opponent challenges and no challenger receives a vote. If every opponent challenges, lose 5 points instead.'
   },
   {
     name: 'The Bipartisan',
@@ -36,11 +36,11 @@ export const personas = [
   },
   {
     name: 'Suddenly Libertarian',
-    rule: 'Take whichever is higher: your retained votes or the number of challengers. Triple that number, then subtract 5 points (because shame on you). This still applies if everyone challenges.'
+    rule: 'Take whichever is higher: your retained votes or the number of challengers. Triple that number. This still applies if everyone challenges.'
   },
   {
     name: 'The Finsta',
-    rule: "Score 3 points per retained vote. At scoring, deduct 3 points from each challenger's point total for this round. If this results in you leading in points for the round, earn a bonus 5 points."
+    rule: "Score 3 points per retained vote. At scoring, deduct 3 points from each challenger's point total for this round. If you score the most points this round, earn a bonus 5 points."
   },
   {
     name: 'The Double Down',
@@ -61,6 +61,26 @@ export const personas = [
   {
     name: 'Ken M.',
     rule: 'Score 2 points for each challenger. Instead of scoring, each challenger loses 2 points. Take another turn.'
+  },
+  {
+    name: 'TL;DR',
+    rule: 'Score 2 points per retained vote. Challengers score an extra point per vote.'
+  },
+  {
+    name: 'Portia, Reader of the Papers',
+    rule: 'Gain 1 point per player. Take another turn.'
+  },
+  {
+    name: 'Good Bot',
+    rule: 'Score 1 point per support and 1 point per retained vote.'
+  },
+  {
+    name: 'Mr. Agreeable',
+    rule: 'Only the challenger with the most votes (ties included) scores. You score the same amount this round.'
+  },
+  {
+    name: 'FIFA President',
+    rule: 'Score 1 point per support and 2 per retained vote. Supporters gain half these points. Challengers do not score.'
   }
 ] as const;
 
@@ -86,13 +106,14 @@ export function scorePersona(
     name !== 'The Troll' &&
     name !== 'Yojimbo' &&
     name !== 'The Bipartisan' &&
-    name !== 'Ken M.'
+    name !== 'Ken M.' &&
+    name !== 'FIFA President'
   ) {
     for (const entry of challenges) {
-      if (!entry.disqualified) {
-        const votes = totals[entry.id];
-        awards[entry.authorId] = votes * (votes === best ? 4 : 2);
-      }
+      const votes = totals[entry.id];
+      if (entry.disqualified || (name === 'Mr. Agreeable' && votes !== best)) continue;
+      awards[entry.authorId] = votes * (votes === best ? 4 : 2);
+      if (name === 'TL;DR') awards[entry.authorId] += votes;
     }
   }
 
@@ -104,25 +125,25 @@ export function scorePersona(
     for (const entry of challenges) awards[entry.authorId] = -2;
     bonusTurn = true;
   } else if (support === 0) {
-    if (name === 'The Troll') award = (2 * count + 5) * 3;
+    if (name === 'The Troll') award = (2 * count + 5) * 2;
     if (name === 'The Provocateur') award = -5;
-    if (name === 'Suddenly Libertarian') award = 3 * count - 5;
+    if (name === 'Suddenly Libertarian') award = 3 * count;
   } else {
     switch (name) {
       case 'Painfully Earnest':
         award = (2 * support + retained) * (count === 0 ? 2 : 1);
         break;
       case 'The Panderer':
-        award = 3 * support + retained - 3 * count + (count === 0 ? 10 : 0);
+        award = 3 * support + retained - 3 * count + (count === 0 ? 5 : 0);
         break;
       case 'The Ice Breaker':
         award = count === 0 ? -3 : 3 * (retained + best);
         break;
       case 'The Troll':
-        award = 2 * count + (retained === 0 ? 5 : 0) - (count === 0 ? 5 : 0);
+        award = 2 * count + (retained === 0 ? 5 : 0);
         break;
       case 'The Provocateur':
-        award = (2 * count + 2 * retained) * (count > 0 && best === 0 ? 3 : 1);
+        award = (2 * count + 2 * retained) * (count > 0 && best === 0 ? 2 : 1);
         break;
       case 'The Bipartisan':
         award =
@@ -151,10 +172,12 @@ export function scorePersona(
         award = count + 2 * retained + (retained >= best ? 5 : 0);
         break;
       case 'Suddenly Libertarian':
-        award = 3 * Math.max(retained, count) - 5;
+        award = 3 * Math.max(retained, count);
         break;
       case 'The Finsta':
-        for (const entry of challenges) awards[entry.authorId] -= 3;
+        for (const { authorId } of challenges) {
+          awards[authorId] = Math.max(0, awards[authorId] - 3);
+        }
         award = 3 * retained;
         if (leads(award)) award += 5;
         break;
@@ -168,11 +191,34 @@ export function scorePersona(
         bonusTurn = !leads(award);
         break;
       case 'The Daydreamer':
-        award = Math.max(0, ...challenges.map(({ authorId }) => awards[authorId])) + 3;
+        award =
+          Math.max(0, ...challenges.map(({ authorId }) => awards[authorId])) +
+          3;
         break;
       case 'The Karma Farmer':
+      case 'Good Bot':
         award = support + retained;
         break;
+      case 'TL;DR':
+        award = 2 * retained;
+        break;
+      case 'Portia, Reader of the Papers':
+        award = playerIds.length;
+        bonusTurn = true;
+        break;
+      case 'Mr. Agreeable':
+        award = Math.max(...Object.values(awards));
+        break;
+      case 'FIFA President': {
+        award = support + 2 * retained;
+        const challengerIds = new Set(challenges.map(({ authorId }) => authorId));
+        for (const id of playerIds) {
+          if (id !== answeringId && !challengerIds.has(id)) {
+            awards[id] = Math.ceil(award / 2);
+          }
+        }
+        break;
+      }
     }
   }
 

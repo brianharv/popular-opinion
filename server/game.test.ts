@@ -146,11 +146,32 @@ test('reveals Paris as soon as answering ends and runs a private 15-second final
   game.next(4999)
   expect(game.show('b').phase).toBe('final-votes')
   game.next(1)
-  expect(game.show('b')).toMatchObject({ phase: 'scoring', phaseDuration: 10_000, result: { awards: { a: 9 } } })
+  expect(game.show('b')).toMatchObject({ phase: 'scoring', phaseDuration: 8_000, result: { awards: { a: 9 } } })
+})
+
+test('unanimous support halves Phase 2 and the Final Votes presentation', () => {
+  const game = setup()
+  game.next(3000)
+  game.next(10_000)
+  game.next(5000)
+  game.send('a', { type: 'answer', phase: 'answering', text: 'Paris' })
+  game.next(20_000)
+  game.send('b', { type: 'support', phase: 'response' })
+  game.next(30_000)
+  expect(game.show('b')).toMatchObject({ phase: 'voting', phaseDuration: 7500 })
+  game.next(7499)
+  expect(game.show('b').phase).toBe('voting')
+  game.next(1)
+  expect(game.show('b').result?.awards).toEqual({ a: 0, b: 0, c: 0, d: 0 })
+  expect(game.show('b')).toMatchObject({ phase: 'final-votes', phaseDuration: 2500 })
+  game.next(2499)
+  expect(game.show('b').phase).toBe('final-votes')
+  game.next(1)
+  expect(game.show('b')).toMatchObject({ phase: 'scoring', phaseDuration: 8_000 })
 })
 
 test.each([
-  { name: 'The Troll', points: 33, bonusTurn: undefined },
+  { name: 'The Troll', points: 22, bonusTurn: undefined },
   { name: 'The Karma Farmer', points: 0, bonusTurn: true },
   { name: 'Ken M.', points: 6, bonusTurn: true }
 ])('$name scores $points and skips Phase 2 when everyone challenges', ({ name, points, bonusTurn }) => {

@@ -73,7 +73,7 @@ test('a real PostgreSQL checkpoint replays an interrupted turn and preserves com
     }
     await expect.poll(() => answerer.show().phase).toBe('final-votes')
     const result = answerer.show().result!
-    expect(result.awards[answeringId!]).toBe(33)
+    expect(result.awards[answeringId!]).toBe(22)
     persona = personas.find(card => card.name === 'The Double Down')!
     await restart()
     const restored = await connect(host)
@@ -92,6 +92,7 @@ test('a real PostgreSQL checkpoint replays an interrupted turn and preserves com
     earningBonus.send({ type: 'answer', phase: 'answering', text: 'Kyoto', turnId: restored.show().turnId })
     await expect.poll(() => earningBonus.show().accepted).toMatchObject({ text: 'Kyoto' })
     await expect.poll(() => restored.show().phase, { timeout: 5000 }).toBe('final-votes')
+    expect(restored.show().phaseDuration).toBe(timing['final-votes'] / 2)
     expect(restored.show().result).toMatchObject({ awards: { [bonusAnswerer]: 12 }, bonusTurn: true })
     await restart()
     const bonusHost = await connect(host)
@@ -99,7 +100,7 @@ test('a real PostgreSQL checkpoint replays an interrupted turn and preserves com
     expect(bonusHost.show()).toMatchObject({
       answeringId: bonusAnswerer,
       match: { turnNumber: 3, scheduledTurnNumber: 2, isBonusTurn: true,
-        scores: { [answeringId!]: 33, [bonusAnswerer]: 12 } }
+        scores: { [answeringId!]: 22, [bonusAnswerer]: 12 } }
     })
 
     const guest = await connect(credentials[1])

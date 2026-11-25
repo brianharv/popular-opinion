@@ -19,7 +19,7 @@ export const durations = {
   'duplicate-review': 10_000,
   'duplicate-result': 2_000,
   'final-votes': 5_000,
-  scoring: 10_000
+  scoring: 8_000
 };
 export const fixtureDraw = (prompt = 'What’s the best vacation destination?'): { prompt: string; persona: Persona } => ({
   prompt,
@@ -198,7 +198,9 @@ function score(turn: Turn, now: number): Turn {
     : { awards: Object.fromEntries(playerIds.map(id => [id, 0])), bonusTurn: false };
   const kenAllChallenged = card?.name === 'Ken M.' &&
     turn.challenges.length === playerIds.length - 1;
-  const phase = turn.original && !kenAllChallenged ? 'final-votes' : 'scoring';
+  const phase = turn.original && !kenAllChallenged && turn.durations['final-votes'] > 0
+    ? 'final-votes'
+    : 'scoring';
   return {
     ...turn,
     phase,
@@ -254,13 +256,21 @@ export function advance(turn: Turn, now: number): Turn {
           });
         else votes[id] = turn.original!.id;
       }
+      const durations = challenges.length === 0
+        ? {
+            ...turn.durations,
+            voting: turn.durations.voting / 2,
+            'final-votes': turn.durations['final-votes'] / 2
+          }
+        : turn.durations;
       const voting = {
         ...turn,
         // Use the random answer IDs so roster order cannot identify authors.
         challenges: challenges.sort((a, b) => a.id.localeCompare(b.id)),
         votes,
+        durations,
         phase: 'voting' as const,
-        deadline: now + turn.durations.voting
+        deadline: now + durations.voting
       };
       return Object.keys(votes).length ? voting : score(voting, now);
     }

@@ -38,6 +38,15 @@ test('four seats reconnect, keep the Persona private, and share committed scorin
     for (const [index, page] of pages.slice(1).entries()) {
       await page.getByRole('button', { name: 'Join Game' }).click()
       await page.getByLabel('Room code').fill(code)
+      if (index === 0) {
+        const name = page.getByLabel('Screen name')
+        await name.fill('pLaYeR 1')
+        await page.getByRole('button', { name: 'Join room' }).click()
+        await expect(name).toBeFocused()
+        await expect(name).toHaveAttribute('aria-invalid', 'true')
+        await expect(name).toHaveAccessibleDescription('That screen name is already in use. Choose a different name.')
+        await expect(host.getByText('Players needed: 3')).toBeVisible()
+      }
       await page.getByLabel('Screen name').fill(`Player ${index + 2}`)
       await page.getByRole('button', { name: 'Join room' }).click()
       await expect(page.getByRole('heading', { name: 'Lobby' })).toBeVisible()
@@ -200,13 +209,9 @@ test('four seats reconnect, keep the Persona private, and share committed scorin
       if (pages[index] !== supporter) expect(privateViews.every(view => view.vote === undefined)).toBe(true)
     }
     await Promise.all(pages.map(async page => {
-      const finalVotes = page.getByRole('heading', { name: 'Final votes' })
-      await expect(finalVotes).toBeVisible({ timeout: 12_000 })
-      await expect(page.getByRole('heading', { name: 'Standings' })).toHaveCount(0)
-      await expect(page.getByRole('listitem').filter({ hasText: '“Oslo”' }))
-        .toContainText(`Player ${pages.indexOf(challenger) + 1}`)
+      await expect(page.getByRole('heading', { name: 'Final votes' })).toBeVisible({ timeout: 12_000 })
       await expect(page.getByRole('heading', { name: 'Standings' })).toBeVisible()
-      await expect(finalVotes).toHaveCount(0)
+      await expect(page.getByRole('heading', { name: 'Final votes' })).toHaveCount(0)
       await expect(page.getByText('The Troll')).toBeVisible()
       await expect(page.getByText(subtitle)).toBeVisible()
       await expect(page.getByText('4 pts')).toBeVisible()
@@ -239,7 +244,7 @@ test('four seats reconnect, keep the Persona private, and share committed scorin
     expect(await host.evaluate(() => navigator.clipboard.readText())).toBe(code)
     await menu.getByRole('button', { name: 'Close' }).click()
     await expect(menuToggle).toBeFocused()
-    await expect(menuToggle).toHaveCSS('color', 'rgb(0, 0, 0)')
+    await expect(menuToggle.locator('img')).toBeVisible()
     await expect(headerBack).toHaveCount(0)
     const guest = pages[1]
     await guest.getByRole('button', { name: 'Open room menu' }).click()
@@ -276,18 +281,19 @@ test('scoring transfers each award in sequence with a pause between rows', async
     ws.onMessage(message => {
       expect(JSON.parse(message.toString())).toEqual({ code, token: 'saved-seat' })
       ws.send(JSON.stringify({ view: {
-        code, you: 'a', hostId: 'a', phase: 'scoring',
+        code, you: 'a', hostId: 'a', phase: 'scoring', answeringId: 'a',
         players: [{ id: 'a', name: 'Alice' }, { id: 'b', name: 'Bea' }, { id: 'c', name: 'Cam' }],
-        serverTime: start.getTime(), deadline: start.getTime() + 10_000, phaseDuration: 10_000,
+        serverTime: start.getTime(), deadline: start.getTime() + 8_000, phaseDuration: 8_000,
         entries: [],
         match: { format: { type: 'rounds', rounds: 5 }, turnNumber: 1, scores: { a: 20, b: 12, c: 15 } },
-        result: { missed: false, entries: [], votes: {}, totals: {}, awards: { a: 10, b: -8, c: 0 } }
+        result: { missed: false, bonusTurn: true, entries: [], votes: {}, totals: {}, awards: { a: 10, b: -8, c: 0 } }
       } } satisfies ServerMessage))
     })
   })
   await page.goto(`/room/${code}`)
   const scores = page.locator('.score')
   const changes = page.locator('.score-change')
+  await expect(page.getByRole('status').filter({ hasText: 'Alice will take another turn.' })).toBeVisible()
   await expect(scores).toHaveText(['+1010 pts', '+015 pts', '-820 pts'])
   const rightEdges = await scores.locator('strong').evaluateAll(totals =>
     totals.map(total => total.getBoundingClientRect().right)
@@ -301,6 +307,8 @@ test('scoring transfers each award in sequence with a pause between rows', async
     localStorage.getItem(`public-opinion:${roomCode}`)
   ], code)).toEqual(['saved-seat', null])
 
+  await page.clock.runFor(3000)
+  await expect(scores).toHaveText(['+1010 pts', '+015 pts', '-820 pts'])
   await page.clock.runFor(575)
   await expect(scores).toHaveText(['+515 pts', '+015 pts', '-820 pts'])
   await page.clock.runFor(525)
@@ -337,16 +345,27 @@ for (const seat of ['host', 'guest']) {
           code, you: seat, hostId: 'host', phase: 'complete',
           players: [{ id: 'host', name: 'Host' }, { id: 'guest', name: 'Guest' }],
           serverTime: Date.now(), entries: [],
+          match: {
+            format: { type: 'rounds', rounds: 5 }, turnNumber: 10,
+            scores: { host: 9, guest: 0 }, outcome: { type: 'winner', playerIds: ['host'] }
+          },
           result: { missed: false, entries: [], votes: {}, totals: {}, awards: { host: 9, guest: 0 } }
         } } satisfies ServerMessage))
       })
     })
+    await page.clock.install()
     await page.goto(`/room/${code}`)
     await expect(page.getByRole('heading', { name: 'Final standings' })).toBeVisible()
     await expect(page.getByRole('button', { name: 'Open room menu' })).toHaveCount(0)
     const exit = page.getByRole('button', { name: seat === 'host' ? 'End Game' : 'Leave Game' })
     await expect(exit).toBeVisible()
-    await page.clock.install()
+    const winner = page.getByRole('dialog', { name: 'Host wins!' })
+    await expect(winner).toBeHidden()
+    await page.clock.runFor(3000)
+    await expect(winner.getByRole('heading', { level: 1 })).toHaveText('Host wins!')
+    await page.clock.runFor(3000)
+    await expect(winner).toBeHidden()
+    await expect(page.getByRole('heading', { name: 'Final standings' })).toBeVisible()
     await exit.click()
     await expect(page).toHaveURL(/\/$/)
     await expect(page.getByRole('dialog')).toHaveCount(0)

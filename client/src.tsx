@@ -55,7 +55,8 @@ function Home() {
   const showGameEndedToast =
     state?.gameEnded === true && dismissedToast !== key;
   const [mode, setMode] = useState<'create' | 'join'>();
-  const [error, setError] = useState('');
+  const [error, setError] = useState<{ message: string; field?: 'name' }>();
+  const joinErrorId = useId();
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
@@ -66,11 +67,12 @@ function Home() {
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const data = new FormData(event.currentTarget);
+    const form = event.currentTarget;
+    const data = new FormData(form);
     const code = String(data.get('code') ?? '')
       .trim()
       .toUpperCase();
-    setError('');
+    setError(undefined);
     setBusy(true);
     try {
       if (mode === 'join' && readSeatToken(code)) {
@@ -88,14 +90,19 @@ function Home() {
         }
       );
       const body = await res.json();
+      if (!res.ok && body.field === 'name') {
+        setError({ message: body.error, field: 'name' });
+        form.querySelector<HTMLInputElement>('input[name="name"]')?.focus();
+        return;
+      }
       if (!res.ok) throw new Error(body.error);
       const credential: Credential = body;
       localStorage.setItem(seatKey(credential.code), credential.token);
       navigate(`/room/${credential.code}`);
     } catch (failure) {
-      setError(
-        failure instanceof Error ? failure.message : 'Unable to connect.'
-      );
+      setError({
+        message: failure instanceof Error ? failure.message : 'Unable to connect.'
+      });
     } finally {
       setBusy(false);
     }
@@ -134,6 +141,7 @@ function Home() {
                     required
                     maxLength={8}
                     autoCapitalize='characters'
+                    onChange={() => { if (error?.field === 'name') setError(undefined); }}
                   />
                 </label>
               )}
@@ -145,16 +153,22 @@ function Home() {
                   required
                   maxLength={24}
                   autoComplete='nickname'
+                  aria-invalid={error?.field === 'name' || undefined}
+                  aria-describedby={error?.field === 'name' ? joinErrorId : undefined}
+                  onChange={() => { if (error?.field === 'name') setError(undefined); }}
                 />
               </label>
+              {error?.field === 'name' && (
+                <small id={joinErrorId} role='alert'>{error.message}</small>
+              )}
               <button disabled={busy}>
                 {mode === 'create' ? 'Create room' : 'Join room'}
               </button>
             </form>
           )}
-          {error && (
+          {error && !error.field && (
             <p className='card' role='alert'>
-              {error}
+              {error.message}
             </p>
           )}
         </div>
@@ -166,7 +180,7 @@ function Home() {
               setMode((current) =>
                 current === 'create' ? undefined : 'create'
               );
-              setError('');
+              setError(undefined);
             }}
           >
             <img
@@ -181,7 +195,7 @@ function Home() {
             aria-pressed={mode === 'join'}
             onClick={() => {
               setMode((current) => (current === 'join' ? undefined : 'join'));
-              setError('');
+              setError(undefined);
             }}
           >
             <img
@@ -401,6 +415,35 @@ function RoomMenu({
         </form>
       </dialog>
     </>
+  );
+}
+
+function WinnerAnnouncement({ name }: { name: string }) {
+  const dialog = useRef<HTMLDialogElement>(null);
+  const titleId = useId();
+
+  useEffect(() => {
+    const modal = dialog.current!;
+    let dismiss: ReturnType<typeof setTimeout> | undefined;
+    const show = setTimeout(() => {
+      modal.showModal();
+      dismiss = setTimeout(() => modal.close(), 3000);
+    }, 3000);
+    return () => {
+      clearTimeout(show);
+      clearTimeout(dismiss);
+      modal.close();
+    };
+  }, []);
+
+  return (
+    <dialog
+      ref={dialog}
+      className='card room-menu winner-announcement'
+      aria-labelledby={titleId}
+    >
+      <h1 id={titleId}>{name} wins!</h1>
+    </dialog>
   );
 }
 
@@ -826,7 +869,7 @@ function PersonaCard({ persona }: { persona: Persona }) {
   );
 }
 
-const scoringLeadIn = 300;
+const scoringLeadIn = 3300;
 const scoreTransferDuration = 520;
 const scoreTransferPause = 300;
 
@@ -846,6 +889,7 @@ function Standings({
   scores,
   awards,
   scoringStartedAt,
+  scoringDuration,
   offset
 }: {
   players: RoomView['players'];
@@ -853,6 +897,7 @@ function Standings({
   scores: Record<string, number>;
   awards: Record<string, number>;
   scoringStartedAt?: number;
+  scoringDuration?: number;
   offset: number;
 }) {
   const [now, setNow] = useState(Date.now);
@@ -866,7 +911,10 @@ function Standings({
         (award === 0 ? 0 : scoreTransferDuration) + scoreTransferPause;
       return { player, award, startsAt };
     });
-  const sequenceDuration = nextStart - scoreTransferPause;
+  const animationDuration = Math.max(0, nextStart - scoreTransferPause - scoringLeadIn);
+  const availableTime = Math.max(0, (scoringDuration ?? Infinity) - scoringLeadIn - 500);
+  const transferTime = Math.min(animationDuration, availableTime);
+  const sequenceDuration = scoringLeadIn + transferTime;
 
   useEffect(() => {
     if (scoringStartedAt === undefined) return;
@@ -881,10 +929,15 @@ function Standings({
     return () => clearInterval(interval);
   }, [scoringStartedAt, offset, sequenceDuration]);
 
-  const elapsed =
+  const displayElapsed =
     scoringStartedAt === undefined
       ? sequenceDuration
       : now + offset - scoringStartedAt;
+  const elapsed = displayElapsed < scoringLeadIn
+    ? displayElapsed
+    : displayElapsed >= sequenceDuration
+      ? scoringLeadIn + animationDuration
+      : scoringLeadIn + (displayElapsed - scoringLeadIn) * (animationDuration / transferTime);
 
   return (
     <ul className='rows standings'>
@@ -1047,14 +1100,13 @@ function Turn({
       : `First to ${format.target} points · ${turnLabel}`);
   const outcome = match?.outcome;
   const contenders = outcome?.playerIds.map(name).join(', ');
+  const winner = outcome?.type === 'winner' ? name(outcome.playerIds[0]) : undefined;
   const finish =
-    outcome?.type === 'winner'
-      ? `${contenders} wins!`
-      : outcome?.type === 'shared-tie'
-        ? `Shared tie among ${contenders}.`
-        : outcome?.type === 'tiebreaker'
-          ? `Tiebreaker required for ${contenders}. Tiebreaker play is unavailable in this build.`
-          : undefined;
+    outcome?.type === 'shared-tie'
+      ? `Shared tie among ${contenders}.`
+      : outcome?.type === 'tiebreaker'
+        ? `Tiebreaker required for ${contenders}. Tiebreaker play is unavailable in this build.`
+        : undefined;
 
   if (phase === 'lobby') {
     const playersNeeded = Math.max(0, minimumPlayers - players.length);
@@ -1234,33 +1286,39 @@ function Turn({
 
   if (result) {
     const scores = match?.scores ?? result.awards;
+    const isFinal = phase === 'complete';
     return (
       <section className='card results-transition'>
         <h1
           className={
-            phase === 'scoring' && result.missed
+            isFinal || (phase === 'scoring' && result.missed)
               ? 'horizontal-center'
               : undefined
           }
         >
-          {phase === 'complete'
+          {isFinal
             ? 'Final standings'
             : result.missed
               ? 'No answer submitted...'
-              : 'Scoring'}
+              : 'Results'}
         </h1>
-        {view.deadline === undefined && progress && (
+        {!isFinal && view.deadline === undefined && progress && (
           <p className='tag'>{progress}</p>
         )}
         {phase === 'complete' && finish && <p role='status'>{finish}</p>}
+        {phase === 'complete' && winner && (
+          <WinnerAnnouncement name={winner} />
+        )}
         {phase === 'complete' && result.missed && (
           <p className='horizontal-center'>No answer submitted.</p>
         )}
-        {result.persona && <PersonaCard persona={result.persona} />}
+        {!isFinal && result.persona && <PersonaCard persona={result.persona} />}
         {phase === 'scoring' && result.bonusTurn && !outcome && (
-          <p role='status'>{name(view.answeringId!)} earned a bonus turn.</p>
+          <p className='bonus-turn-card' role='status'>
+            {name(view.answeringId!)} will take another turn.
+          </p>
         )}
-        <h2>Standings</h2>
+        {!isFinal && <h2>Standings</h2>}
         <Standings
           players={players}
           you={you}
@@ -1274,6 +1332,7 @@ function Turn({
               : undefined
           }
           offset={offset}
+          scoringDuration={view.phaseDuration}
         />
         {phase === 'complete' && (
           <div className='horizontal-center'>

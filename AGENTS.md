@@ -17,6 +17,7 @@ This is the working v1 specification for an original, browser-based party game. 
 - Round-based options are 5, 7, or 10 scheduled turns per player. A bonus turn plays immediately and does not consume a scheduled turn. Bonus turns can chain, including after the last scheduled turn. Check final standings after the chain. Players tied for the highest score enter a tiebreaker.
 - Score-based targets are 50, 100, or 200. Apply every player's award together, then check final totals for the turn. One player at or above target wins. If multiple players qualify on the same turn, all qualify for the tiebreaker even if their totals differ. A victory or tiebreaker takes precedence over a bonus turn.
 - If the entire roster qualifies for a tiebreaker, end in a shared tie.
+- When a match has a winner, show the winner’s name in a modal three seconds after final standings appear. Dismiss it after three seconds and keep the final standings visible.
 - A turn can award points to the Answering Player and to challengers. A missed answering turn still consumes its scheduled turn.
 
 ## Regular turn
@@ -26,8 +27,8 @@ This is the working v1 specification for an original, browser-based party game. 
 3. Reveal the locked answer as soon as the answer timer reaches zero.
 4. Run the 30-second Phase 1 response window. Opponents explicitly submit Support or Challenge and can change their submitted choice until the deadline. Show each player their last accepted choice and answer. Draft edits or selecting an option in the form leave the accepted choice intact. An absent response or a challenge without a valid nonblank submission defaults to Support.
 5. If support votes total zero, skip Phase 2, reveal the Persona at scoring, and award zero by default. An explicit Persona override can still award points or deduct points here.
-6. Otherwise, reveal challenge answers and run Phase 2 for 15 seconds. Only Phase 1 supporters can move their vote, choosing between the original answer and valid challenge answers. A supporter who takes no action retains their initial allocation. Players see their own current action, and final vote allocations and totals become public at scoring.
-7. When the Phase 2 timer reaches zero, all votes must point to valid answers before scoring. Resolve the Persona and challenger awards, commit the outcome, then show final votes for 5 seconds followed by the standings for 10 seconds before automatically advancing. Show the same results on every device and highlight the viewer's standings row.
+6. Otherwise, reveal challenge answers and run Phase 2 for 15 seconds (7.5 seconds if every opponent supported). Only Phase 1 supporters can move their vote, choosing between the original answer and valid challenge answers. A supporter who takes no action retains their initial allocation. Players see their own current action, and final vote allocations and totals become public at scoring.
+7. When the Phase 2 timer reaches zero, all votes must point to valid answers before scoring. Resolve the Persona and challenger awards, commit the outcome, then show Final Votes for 5 seconds (2.5 seconds if every opponent supported), followed by the Results standings for 8 seconds before automatically advancing. Show the same results on every device and highlight the viewer's standings row.
 
 Timed phases run to zero even if everyone has submitted. The voting clock keeps running while a player selects duplicates and pauses when the server accepts the flag. A completed review restores the greater of the paused time and 10 seconds when play resumes.
 
@@ -48,20 +49,25 @@ Default challenger award is 2 points per final vote, doubled for every eligible 
 | Persona             | Scoring rule                                                                                                                                                                                                                      |
 | -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Painfully Earnest      | 2 per support vote plus 1 per retained vote. Double the subtotal if nobody challenged.                                                                                                                                            |
-| The Panderer             | 3 per support vote plus 1 per retained vote, minus 3 per challenger, plus 10 if nobody challenged.                                                                                                                                |
+| The Panderer             | 3 per support vote plus 1 per retained vote, minus 3 per challenger, plus 5 if nobody challenged.                                                                                                                                |
 | The Ice Breaker          | Lose 3 if nobody challenged. Otherwise triple the sum of retained votes and the greatest vote count received by any single challenger.                                                                                            |
-| The Troll            | 2 per challenger, plus 5 if zero retained votes, minus 5 if nobody challenged. Triple the subtotal if all opponents challenged. This applies when Phase 2 is skipped. Challengers score zero.                                     |
-| The Provocateur          | 2 per challenger plus 2 per retained vote. Triple if at least one opponent challenged and no challenger receives a vote. If zero support votes and every opponent challenged, replace the award with −5.                          |
+| The Troll            | 2 per challenger, plus 5 if zero retained votes. Double the subtotal if all opponents challenged. This applies when Phase 2 is skipped. Challengers score zero.                                     |
+| The Provocateur          | 2 per challenger plus 2 per retained vote. Double if at least one opponent challenged and no challenger receives a vote. If zero support votes and every opponent challenged, replace the award with −5.                          |
 | The Bipartisan          | Score 10 if the Answering Player retains at least one vote and ties any challenger’s final vote tally. Otherwise score zero. Challengers score zero. |
 | Yojimbo             | Score 5 per eligible challenger whose positive final vote tally ties another challenger’s. Challengers score zero. |
 | Sir John Falstaff       | 1 per challenger plus 2 per retained vote. Add 5 if the Answering Player leads or ties for the lead in final votes.                                                                                                            |
-| Suddenly Libertarian | Triple the greater of the retained vote count and the challenger count, then subtract 5. Applies even if everyone challenges.                                                                                                                                           |
-| The Finsta               | 3 per retained vote. Deduct 3 from each challenger's default award, including disqualified challengers. Add 5 if the Answering Player has the most round points outright after those deductions and before the bonus. |
+| Suddenly Libertarian | Triple the greater of the retained vote count and the challenger count. Applies even if everyone challenges.                                                                                                                                           |
+| The Finsta               | 3 per retained vote. Subtract 3 from each challenger’s award for the round, with a minimum award of zero. Add 5 if the Answering Player has the most round points outright after those deductions and before the bonus. |
 | The Double Down          | Tentative award of 2 per support vote plus 2 per retained vote. If the Answering Player has a clear lead in points for the turn, keep that award and grant a bonus turn. Otherwise their award is zero.                           |
 | The Ambien Defense   | 2 per support vote plus 1 per retained vote. Keep the award and grant a bonus turn if the Answering Player does not have a clear lead in points for the turn.                                                                     |
 | The Daydreamer | Match the highest challenger award, or start at zero if nobody challenged, then add 3. Apply the standard zero-support rule. |
 | The Karma Farmer | Score 1 per support vote and 1 per retained vote. Grant a bonus turn even when everyone challenges and all awards are zero. |
 | Ken M. | Score 2 per challenger. Each challenger loses 2 instead of receiving their default award. Grant a bonus turn. If everyone challenges, apply these awards and go straight to the scoring view. |
+| TL;DR | Score 2 per retained vote. Add 1 point per final vote to each eligible challenger’s default award. |
+| Portia, Reader of the Papers | Score 1 per player, including the Answering Player. Grant a bonus turn when the standard zero-support rule does not apply. |
+| Good Bot | Score 1 per support vote and 1 per retained vote. |
+| Mr. Agreeable | Only eligible challengers tied for the most votes receive their default award. The Answering Player matches one such award, or scores zero if nobody challenged. |
+| FIFA President | Score 1 per support vote and 2 per retained vote. Each initial supporter receives half the Answering Player’s award, rounded up. Challengers score zero. |
 
 ## Tiebreaker
 
@@ -88,9 +94,9 @@ Default challenger award is 2 points per final vote, doubled for every eligible 
 
 | Fixture                                                               | Expected result                                                                                                             |
 | --------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| Four-player Troll, everyone challenges                                | Phase 2 skipped. Answering Player +33, challengers zero.                                                                    |
+| Four-player Troll, everyone challenges                                | Phase 2 skipped. Answering Player +22, challengers zero.                                                                    |
 | Four-player Troll, two challenges, one supporter switches             | Answering Player +9, challengers zero.                                                                                      |
-| Three submitted challenges, two disqualified                          | Troll still counts three. The Panderer penalty is −9. The Finsta deducts 3 from each challenger.                                    |
+| Three submitted challenges, two disqualified                          | Troll still counts three. The Panderer penalty is −9. The Finsta leaves disqualified challengers at zero.                                    |
 | Four-player The Provocateur, everyone challenges                          | Answering Player −5, others zero.                                                                                           |
 | Answering Player submits Paris, then edits to Rome without submitting | Paris reveals as soon as the answer timer reaches zero.                                                                     |
 | Answering Player times out with no submission and The Troll           | Zero points and no Persona reveal on any opponent device.                                                                  |

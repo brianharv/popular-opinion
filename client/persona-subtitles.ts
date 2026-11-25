@@ -14,7 +14,10 @@ export const personaSubtitles = new Map<string, string>([
     'Sir John Falstaff',
     'In vino veritas.'
   ],
-  ['Suddenly Libertarian', 'Oh, right, sorry – you liked Ron Paul in ’08.'],
+  [
+    'Suddenly Libertarian',
+    'A common maneuver observed in parents trying to stay on the right side of history.'
+  ],
   [
     'The Finsta',
     'The recommended method for arguing with strangers on the social media platform you just bought.'
@@ -31,6 +34,11 @@ export const personaSubtitles = new Map<string, string>([
   ['The Karma Farmer', "It ain't much, but it's honest work."],
   [
     'Ken M.',
-    "you'd be suprised at how many people dont know anything about knowledge and yet we should forgive them for they know not what they not know."
-  ]
+    "“you'd be suprised at how many people dont know anything about knowledge and yet we should forgive them for they know not what they not know.”"
+  ],
+  ['TL;DR', "It's time to make some sweeping claims based on that headline you read."],
+  ['Portia, Reader of the Papers', "You know what's up."],
+  ['Good Bot', 'Beep boap boop'],
+  ['Mr. Agreeable', 'What he said.'],
+  ['FIFA President', 'Kickbacks, get it? Soccer? Kick?']
 ]);

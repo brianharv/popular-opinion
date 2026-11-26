@@ -11,9 +11,8 @@ import { personas, scorePersona } from './personas';
 
 export const durations = {
   'turn-intro': 3_000,
-  'persona-preview': 10_000,
-  'prompt-preview': 5_000,
-  answering: 20_000,
+  'persona-preview': 5_000,
+  answering: 25_000,
   response: 30_000,
   voting: 15_000,
   'duplicate-review': 10_000,
@@ -21,7 +20,9 @@ export const durations = {
   'final-votes': 5_000,
   scoring: 8_000
 };
-export const fixtureDraw = (prompt = 'What’s the best vacation destination?'): { prompt: string; persona: Persona } => ({
+export const fixtureDraw = (
+  prompt = 'What’s the best vacation destination?'
+): { prompt: string; persona: Persona } => ({
   prompt,
   persona: personas.find(({ name }) => name === 'The Troll')!
 });
@@ -121,15 +122,21 @@ export function action(
       break;
     case 'flag-duplicates': {
       const answerIds = [...new Set(input.answerIds)].sort();
-      const flagged = turn.challenges.filter(({ id }) => answerIds.includes(id));
+      const flagged = turn.challenges.filter(({ id }) =>
+        answerIds.includes(id)
+      );
       if (
         !canFlagDuplicates(turn, seat) ||
         answerIds.length < 2 ||
         flagged.length !== answerIds.length ||
         flagged.every((entry) => entry.disqualified) ||
-        turn.flags.some((flag) => flag.answerIds.length === answerIds.length &&
-          flag.answerIds.every((id, index) => id === answerIds[index]))
-      ) break;
+        turn.flags.some(
+          (flag) =>
+            flag.answerIds.length === answerIds.length &&
+            flag.answerIds.every((id, index) => id === answerIds[index])
+        )
+      )
+        break;
       return {
         ...turn,
         phase: 'duplicate-review',
@@ -138,7 +145,9 @@ export function action(
         returnedVotes: undefined,
         review: {
           answerIds,
-          eligible: turn.players.filter(({ id }) => !flagged.some((entry) => entry.authorId === id)).map(({ id }) => id),
+          eligible: turn.players
+            .filter(({ id }) => !flagged.some((entry) => entry.authorId === id))
+            .map(({ id }) => id),
           ballots: {},
           pausedTime: turn.deadline - now
         }
@@ -146,7 +155,13 @@ export function action(
     }
     case 'vote-duplicates':
       if (turn.review?.eligible.includes(seat)) {
-        return { ...turn, review: { ...turn.review, ballots: { ...turn.review.ballots, [seat]: input.yes } } };
+        return {
+          ...turn,
+          review: {
+            ...turn.review,
+            ballots: { ...turn.review.ballots, [seat]: input.yes }
+          }
+        };
       }
       break;
   }
@@ -154,18 +169,25 @@ export function action(
 }
 
 function canFlagDuplicates(turn: Turn, seat: string) {
-  return seat !== turn.answeringId && turn.challenges.length >= 2 &&
+  return (
+    seat !== turn.answeringId &&
+    turn.challenges.length >= 2 &&
     turn.challenges.some((entry) => !entry.disqualified) &&
-    !turn.flags.some((flag) => flag.seat === seat);
+    !turn.flags.some((flag) => flag.seat === seat)
+  );
 }
 
 function finishReview(turn: Turn, now: number): Turn {
   const review = turn.review!;
-  const no = review.eligible.filter((id) => review.ballots[id] === false).length;
+  const no = review.eligible.filter(
+    (id) => review.ballots[id] === false
+  ).length;
   const yes = review.eligible.length - no;
   const passed = yes > no;
   const returnedVotes = passed
-    ? Object.keys(turn.votes).filter((id) => review.answerIds.includes(turn.votes[id]))
+    ? Object.keys(turn.votes).filter((id) =>
+        review.answerIds.includes(turn.votes[id])
+      )
     : [];
   const votes = { ...turn.votes };
   for (const id of returnedVotes) votes[id] = turn.original!.id;
@@ -175,7 +197,11 @@ function finishReview(turn: Turn, now: number): Turn {
     deadline: now + turn.durations['duplicate-result'],
     review: { ...review, outcome: { passed, yes, no } },
     challenges: passed
-      ? turn.challenges.map((entry) => review.answerIds.includes(entry.id) ? { ...entry, disqualified: true } : entry)
+      ? turn.challenges.map((entry) =>
+          review.answerIds.includes(entry.id)
+            ? { ...entry, disqualified: true }
+            : entry
+        )
       : turn.challenges,
     votes,
     returnedVotes
@@ -193,14 +219,26 @@ function score(turn: Turn, now: number): Turn {
   );
   const playerIds = turn.players.map(({ id }) => id);
   const card = personas.find(({ name }) => name === turn.persona.name);
-  const { awards, bonusTurn } = turn.original && card
-    ? scorePersona(card.name, turn.answeringId, playerIds, turn.challenges, totals, totals[turn.original.id])
-    : { awards: Object.fromEntries(playerIds.map(id => [id, 0])), bonusTurn: false };
-  const kenAllChallenged = card?.name === 'Ken M.' &&
-    turn.challenges.length === playerIds.length - 1;
-  const phase = turn.original && !kenAllChallenged && turn.durations['final-votes'] > 0
-    ? 'final-votes'
-    : 'scoring';
+  const { awards, bonusTurn } =
+    turn.original && card
+      ? scorePersona(
+          card.name,
+          turn.answeringId,
+          playerIds,
+          turn.challenges,
+          totals,
+          totals[turn.original.id]
+        )
+      : {
+          awards: Object.fromEntries(playerIds.map((id) => [id, 0])),
+          bonusTurn: false
+        };
+  const kenAllChallenged =
+    card?.name === 'Ken M.' && turn.challenges.length === playerIds.length - 1;
+  const phase =
+    turn.original && !kenAllChallenged && turn.durations['final-votes'] > 0
+      ? 'final-votes'
+      : 'scoring';
   return {
     ...turn,
     phase,
@@ -229,18 +267,16 @@ export function advance(turn: Turn, now: number): Turn {
     case 'persona-preview':
       return {
         ...turn,
-        phase: 'prompt-preview',
-        deadline: now + turn.durations['prompt-preview']
-      };
-    case 'prompt-preview':
-      return {
-        ...turn,
         phase: 'answering',
         deadline: now + turn.durations.answering
       };
     case 'answering':
       return turn.original
-        ? { ...turn, phase: 'response', deadline: now + turn.durations.response }
+        ? {
+            ...turn,
+            phase: 'response',
+            deadline: now + turn.durations.response
+          }
         : score(turn, now);
     case 'response': {
       const challenges: Entry[] = [];
@@ -256,13 +292,14 @@ export function advance(turn: Turn, now: number): Turn {
           });
         else votes[id] = turn.original!.id;
       }
-      const durations = challenges.length === 0
-        ? {
-            ...turn.durations,
-            voting: turn.durations.voting / 2,
-            'final-votes': turn.durations['final-votes'] / 2
-          }
-        : turn.durations;
+      const durations =
+        challenges.length === 0
+          ? {
+              ...turn.durations,
+              voting: turn.durations.voting / 2,
+              'final-votes': turn.durations['final-votes'] / 2
+            }
+          : turn.durations;
       const voting = {
         ...turn,
         // Use the random answer IDs so roster order cannot identify authors.
@@ -286,7 +323,11 @@ export function advance(turn: Turn, now: number): Turn {
         review: undefined
       };
     case 'final-votes':
-      return { ...turn, phase: 'scoring', deadline: now + turn.durations.scoring };
+      return {
+        ...turn,
+        phase: 'scoring',
+        deadline: now + turn.durations.scoring
+      };
     case 'scoring':
       return { ...turn, phase: 'complete', deadline: undefined };
     case 'complete':
@@ -316,32 +357,42 @@ export function view(
   const { phase, deadline, answeringId, prompt, original, challenges, result } =
     turn;
   const answering = answeringId === you;
-  const previewing = phase === 'turn-intro' || phase === 'persona-preview' || phase === 'prompt-preview';
-  const entries = turn.review ? challenges.filter(({ id }) => turn.review!.answerIds.includes(id))
-    : !original ? []
-    : phase === 'voting' ? [original, ...challenges]
-    : phase === 'response' ? [original]
-    : [];
+  const previewing = phase === 'turn-intro' || phase === 'persona-preview';
+  const entries = turn.review
+    ? challenges.filter(({ id }) => turn.review!.answerIds.includes(id))
+    : !original
+      ? []
+      : phase === 'voting'
+        ? [original, ...challenges]
+        : phase === 'response'
+          ? [original]
+          : [];
   return {
     ...base,
     phase,
     deadline,
     answeringId,
-    prompt: previewing && (!answering || phase !== 'prompt-preview') ? undefined : prompt,
+    prompt: previewing ? undefined : prompt,
     result,
     turnId: turn.id,
     phaseDuration: phase === 'complete' ? undefined : turn.durations[phase],
     previewWait:
       !answering && previewing && deadline !== undefined
         ? {
-            deadline: deadline
-              + (phase === 'turn-intro' ? turn.durations['persona-preview'] : 0)
-              + (phase !== 'prompt-preview' ? turn.durations['prompt-preview'] : 0),
-            duration: turn.durations['turn-intro'] + turn.durations['persona-preview'] + turn.durations['prompt-preview']
+            deadline:
+              deadline +
+              (phase === 'turn-intro' ? turn.durations['persona-preview'] : 0),
+            duration:
+              turn.durations['turn-intro'] + turn.durations['persona-preview']
           }
         : undefined,
-    persona: !result && answering && phase !== 'turn-intro' && phase !== 'prompt-preview' ? turn.persona : undefined,
-    entries: entries.map(({ id, text, disqualified }) => ({ id, text, disqualified })),
+    persona:
+      !result && answering && phase !== 'turn-intro' ? turn.persona : undefined,
+    entries: entries.map(({ id, text, disqualified }) => ({
+      id,
+      text,
+      disqualified
+    })),
     canFlagDuplicates: phase === 'voting' && canFlagDuplicates(turn, you),
     duplicateReview: turn.review && {
       eligible: turn.review.eligible.includes(you),

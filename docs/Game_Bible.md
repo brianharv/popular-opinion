@@ -28,11 +28,11 @@ Use a private room for 4–12 players. The game is designed for co-located play.
 
 ## Anatomy of a turn
 
-1. Draw a Prompt and Persona together. Show the Answering Player a personalized turn announcement for 3 seconds. Then show them only the Persona for 10 seconds and then only the Prompt for 5 seconds. During the announcement and both previews, opponents see a single waiting screen with the Answering Player’s name and a countdown. Reveal the Prompt to opponents when the answer timer starts. Keep the Persona private to the Answering Player until scoring.
-2. The Answering Player gets 20 seconds to submit and revise. After a submission, show the server-accepted answer and let the player reopen the form to revise it. At zero, lock the last submitted answer. If no answer was submitted, skip directly to a 10-second shared “No answer submitted” scoring view with current standings, zero awards, and no Persona reveal.
+1. Draw a Prompt and Persona together. Show the Answering Player a personalized turn announcement for 3 seconds. Then show them only the Persona for 5 seconds. During the announcement and Persona preview, opponents see a single waiting screen with the Answering Player’s name and a countdown. Reveal the Prompt to everyone when the answer timer starts. Keep the Persona private to the Answering Player until scoring.
+2. The Answering Player gets 25 seconds to submit and revise. After a submission, show the server-accepted answer and let the player reopen the form to revise it. At zero, lock the last submitted answer. If no answer was submitted, skip directly to an 8-second shared “No answer submitted” scoring view with current standings, zero awards, and no Persona reveal.
 3. Reveal the locked answer as soon as the answer timer reaches zero.
 4. Run the 30-second Phase 1 response window. Opponents explicitly submit Support or Challenge and can change their submitted choice until the deadline. Show each player their last accepted choice and answer. Draft edits or selecting an option in the form leave the accepted choice intact. An absent response or a challenge without a valid nonblank submission defaults to Support.
-5. If support votes total zero, skip Phase 2, reveal the Persona at scoring, and award zero by default. An explicit Persona override can still award points or deduct points here.
+5. If support votes total zero, skip Phase 2, reveal the Persona at scoring, and deduct 1 point from the Answering Player by default. Challengers score zero. An explicit Persona override can still award points or deduct points here.
 6. Otherwise, reveal challenge answers and run Phase 2 for 15 seconds (7.5 seconds if every opponent supported). Only Phase 1 supporters can move their vote, choosing between the original answer and valid challenge answers. A supporter who takes no action retains their initial allocation. Players see their own current action, and final vote allocations and totals become public at scoring.
 7. When the Phase 2 timer reaches zero, all votes must point to valid answers before scoring. Resolve the Persona and challenger awards, commit the outcome, then show Final Votes for 5 seconds (2.5 seconds if every opponent supported), followed by the Results standings for 8 seconds before automatically advancing. Show the same results on every device and highlight the viewer's standings row.
 
@@ -50,7 +50,7 @@ Timed phases run to zero even if everyone has submitted. The voting clock keeps 
 
 Use **support votes** for initial Phase 1 support, including defaults, **retained votes** for votes on the original answer at the end of Phase 2, and **votes for a challenger** for final votes on that challenger's answer. Count valid Phase 1 challenges even if an answer is subsequently disqualified, unless the Persona explicitly says otherwise.
 
-Default challenger award is 2 points per final vote, doubled for every eligible challenger tied for the most votes among challengers. Disqualified challengers get zero under default scoring. Persona text takes precedence over the default rules where it explicitly addresses them. A missed original answer always gives everyone zero. Cumulative scores can go below zero. Apply deductions in full and show negative totals in the standings.
+Default challenger award is 2 points per final vote, doubled for every eligible challenger tied for the most votes among challengers. Eligible challengers with zero final votes lose 1 point if Phase 2 took place. Disqualified challengers lose 2 points under default scoring. Persona text takes precedence over the default rules where it explicitly addresses them. A missed original answer always gives everyone zero. Cumulative scores can go below zero. Apply deductions in full and show negative totals in the standings.
 
 **Zero support.** The Troll, The Provocateur, Suddenly Libertarian, and Ken M. have confirmed scoring overrides when everyone challenges. Phase 2 is still skipped. A turn with no submitted original answer follows the separate “No answer submitted” outcome.
 
@@ -78,7 +78,7 @@ Lose 3 if nobody challenged. Otherwise triple the sum of retained votes and the 
 
 _“If you don’t have anything nice to say, say it on the internet.”_
 
-2 per challenger, plus 5 if zero retained votes. Double the subtotal if all opponents challenged. This applies when Phase 2 is skipped. Challengers score zero.
+2 per challenger, plus 5 if zero retained votes. Double the subtotal and subtract 1 point if all opponents challenged. This applies when Phase 2 is skipped. Challengers score zero.
 
 ### The Provocateur
 
@@ -96,7 +96,7 @@ Your goal is to retain at least one vote while ending the round with the same vo
 
 _“It would seem we have reached an impasse.”_
 
-Score 5 points per eligible challenger whose positive final vote tally ties another challenger’s. Challengers score zero.
+Score 5 points per eligible challenger whose positive final vote tally ties another challenger’s. Challengers cannot earn points. Those with zero final votes lose 1 point if eligible or 2 points if disqualified.
 
 ### Sir John Falstaff
 
@@ -142,15 +142,15 @@ _It ain't much, but it's honest work._
 
 Score 1 point for each support vote and each retained vote. Take another turn.
 
-When everyone challenges, skip Phase 2 and give everyone zero points. The Answering Player still earns the bonus turn.
+When everyone challenges, skip Phase 2. The Answering Player loses 1 point and still earns the bonus turn. Challengers score zero.
 
 ### Ken M.
 
 _“you'd be suprised at how many people dont know anything about knowledge and yet we should forgive them for they know not what they not know.”_
 
-Score 2 points for each challenger. Instead of scoring, each challenger loses 2 points. Take another turn.
+Score 2 points for each challenger. Instead of scoring, each challenger loses 2 points. Disqualified challengers lose 2 more. Take another turn.
 
-If everyone challenges, go straight to the scoring view, apply the same awards, and grant the bonus turn.
+If everyone challenges, go straight to the scoring view, subtract 1 point from the Answering Player’s award, and grant the bonus turn.
 
 ### TL;DR
 
@@ -202,9 +202,9 @@ Score 1 point per support vote and 2 per retained vote. Each initial supporter g
 
 | Fixture                                                               | Expected result                                                                                                             |
 | --------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| Four-player Troll, everyone challenges                                | Phase 2 skipped. Answering Player +22, challengers zero.                                                                    |
+| Four-player Troll, everyone challenges                                | Phase 2 skipped. Answering Player +21, challengers zero.                                                                    |
 | Four-player Troll, two challenges, one supporter switches             | Answering Player +9, challengers zero.                                                                                      |
-| Three submitted challenges, two disqualified                          | Troll still counts three. The Panderer penalty is −9. The Finsta leaves disqualified challengers at zero.                            |
+| Three submitted challenges, two disqualified                          | Troll still counts three. The Panderer’s challenger-count deduction is 9 points, and each disqualified challenger loses 2 points. The Finsta leaves disqualified challengers at zero.                            |
 | Four-player The Provocateur, everyone challenges                      | Answering Player −5, others zero.                                                                                           |
 | Four-player Suddenly Libertarian, everyone challenges                 | Skip Phase 2. Answering Player earns 9 points (3 × 3), others zero.                                                     |
 | The Ice Breaker starts at 2 points and nobody challenges              | Apply the −3 award. Show a cumulative score of −1 in the standings.                                                         |

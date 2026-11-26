@@ -4,7 +4,7 @@ const hints = [
   'By default, challengers score 2 points per vote. Pay attention, some personas change this.',
   'Provided there is enough time, you can always change your response by clicking “Change your mind?”',
   'Some personas punish challengers.',
-  'By default, the challenger(s) most votes out of all players scores double.',
+  'By default, the challenger(s) with the most votes out of all players that round scores double.',
   'Usually, if an answer receives all challenges and no support, the round ends immediately and no one scores. Some personas change this rule…',
   'If an answer seems intentionally bad, there might be a good reason for that...',
   'A retained vote is a support vote that stays on the original answer through the end of final voting.',

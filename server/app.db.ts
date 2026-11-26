@@ -6,7 +6,7 @@ import { localDatabase } from './storage'
 import type { Credential, RoomView } from '../shared/protocol'
 
 const url = process.env.TEST_DATABASE_URL ?? localDatabase
-const timing = { 'turn-intro': 100, 'persona-preview': 150, 'prompt-preview': 150, answering: 1800, response: 500, voting: 500, 'duplicate-review': 1000, 'duplicate-result': 400, 'final-votes': 10_000, scoring: 10_000 }
+const timing = { 'turn-intro': 100, 'persona-preview': 150, answering: 1800, response: 500, voting: 500, 'duplicate-review': 1000, 'duplicate-result': 400, 'final-votes': 10_000, scoring: 10_000 }
 
 test('a real PostgreSQL checkpoint replays an interrupted turn and preserves committed points once', async () => {
   let persona = fixtureDraw().persona
@@ -73,7 +73,7 @@ test('a real PostgreSQL checkpoint replays an interrupted turn and preserves com
     }
     await expect.poll(() => answerer.show().phase).toBe('final-votes')
     const result = answerer.show().result!
-    expect(result.awards[answeringId!]).toBe(22)
+    expect(result.awards[answeringId!]).toBe(21)
     persona = personas.find(card => card.name === 'The Double Down')!
     await restart()
     const restored = await connect(host)
@@ -100,7 +100,7 @@ test('a real PostgreSQL checkpoint replays an interrupted turn and preserves com
     expect(bonusHost.show()).toMatchObject({
       answeringId: bonusAnswerer,
       match: { turnNumber: 3, scheduledTurnNumber: 2, isBonusTurn: true,
-        scores: { [answeringId!]: 22, [bonusAnswerer]: 12 } }
+        scores: { [answeringId!]: 21, [bonusAnswerer]: 12 } }
     })
 
     const guest = await connect(credentials[1])

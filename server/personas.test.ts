@@ -14,7 +14,7 @@ test('The Panderer earns a five-point bonus when nobody challenges', () => {
 
 test('The Provocateur doubles points when challengers receive no votes', () => {
   expect(scorePersona('The Provocateur', 'a', players, challenges, { x: 0, y: 0 }, 3).awards)
-    .toEqual({ a: 20, b: 0, c: 0, d: 0, e: 0, f: 0 });
+    .toEqual({ a: 20, b: -1, c: -1, d: 0, e: 0, f: 0 });
 });
 
 test.each([
@@ -70,7 +70,11 @@ test.each([
   const totals = Object.fromEntries(votes.map((tally, index) => [String(index), tally]));
   const retained = 6 - votes.reduce((sum, tally) => sum + tally, 0);
   const result = scorePersona('Yojimbo', 'a', roster, entries, totals, retained);
-  expect(result.awards).toEqual(Object.fromEntries(roster.map(id => [id, id === 'a' ? expected : 0])));
+  const expectedAwards = Object.fromEntries(roster.map(id => [id, id === 'a' ? expected : 0]));
+  entries.forEach(({ authorId }, index) => {
+    if (votes[index] === 0) expectedAwards[authorId] = -1;
+  });
+  expect(result.awards).toEqual(expectedAwards);
 });
 
 test('The Daydreamer copies the highest challenger award and adds three', () => {
@@ -93,16 +97,16 @@ test('FIFA President rounds up the award for every initial supporter', () => {
     .toEqual({ a: 5, b: 0, c: 0, d: 3, e: 3, f: 3 });
 });
 
-test('only the confirmed exceptions score when everyone challenges', () => {
+test('the answering player loses one point when everyone challenges unless the persona overrides it', () => {
   const allChallenges = [
     ...challenges,
     { id: 'z', authorId: 'd', text: 'Oslo' }
   ];
   const overrides: Record<string, number> = {
-    'The Troll': 22,
+    'The Troll': 21,
     'The Provocateur': -5,
     'Suddenly Libertarian': 9,
-    'Ken M.': 6
+    'Ken M.': 5
   };
   for (const { name } of personas) {
     const challengerPoints = name === 'Ken M.' ? -2 : 0;
@@ -117,7 +121,7 @@ test('only the confirmed exceptions score when everyone challenges', () => {
         0
       )
     ).toEqual({
-      awards: { a: overrides[name] ?? 0, ...challengerAwards },
+      awards: { a: overrides[name] ?? -1, ...challengerAwards },
       bonusTurn: name === 'The Karma Farmer' || name === 'Ken M.'
     });
   }
@@ -131,14 +135,15 @@ test('disqualified challenges still count and The Finsta leaves their awards at 
   const score = (name: Parameters<typeof scorePersona>[0]) =>
     scorePersona(name, 'a', players, entries, { x: 0, y: 0, z: 1 }, 1).awards;
   expect(score('The Troll').a).toBe(6);
-  expect(score('The Panderer').a).toBe(-2);
+  expect(score('The Panderer')).toEqual({ a: -2, b: -2, c: -2, d: 4, e: 0, f: 0 });
+  expect(score('Yojimbo')).toEqual({ a: 0, b: -2, c: -2, d: 0, e: 0, f: 0 });
   expect(score('The Finsta')).toEqual({ a: 8, b: 0, c: 0, d: 1, e: 0, f: 0 });
-  expect(score('Ken M.')).toEqual({ a: 6, b: -2, c: -2, d: -2, e: 0, f: 0 });
+  expect(score('Ken M.')).toEqual({ a: 6, b: -4, c: -4, d: -2, e: 0, f: 0 });
 });
 
 test('Suddenly Libertarian triples retained votes when they outnumber challengers', () => {
   expect(scorePersona('Suddenly Libertarian', 'a', players, challenges, { x: 0, y: 0 }, 3).awards)
-    .toEqual({ a: 9, b: 0, c: 0, d: 0, e: 0, f: 0 });
+    .toEqual({ a: 9, b: -1, c: -1, d: 0, e: 0, f: 0 });
 });
 
 test('The Finsta awards no bonus when round points are tied after deductions', () => {

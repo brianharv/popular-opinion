@@ -101,7 +101,8 @@ function Home() {
       navigate(`/room/${credential.code}`);
     } catch (failure) {
       setError({
-        message: failure instanceof Error ? failure.message : 'Unable to connect.'
+        message:
+          failure instanceof Error ? failure.message : 'Unable to connect.'
       });
     } finally {
       setBusy(false);
@@ -141,7 +142,9 @@ function Home() {
                     required
                     maxLength={8}
                     autoCapitalize='characters'
-                    onChange={() => { if (error?.field === 'name') setError(undefined); }}
+                    onChange={() => {
+                      if (error?.field === 'name') setError(undefined);
+                    }}
                   />
                 </label>
               )}
@@ -154,12 +157,18 @@ function Home() {
                   maxLength={24}
                   autoComplete='nickname'
                   aria-invalid={error?.field === 'name' || undefined}
-                  aria-describedby={error?.field === 'name' ? joinErrorId : undefined}
-                  onChange={() => { if (error?.field === 'name') setError(undefined); }}
+                  aria-describedby={
+                    error?.field === 'name' ? joinErrorId : undefined
+                  }
+                  onChange={() => {
+                    if (error?.field === 'name') setError(undefined);
+                  }}
                 />
               </label>
               {error?.field === 'name' && (
-                <small id={joinErrorId} role='alert'>{error.message}</small>
+                <small id={joinErrorId} role='alert'>
+                  {error.message}
+                </small>
               )}
               <button disabled={busy}>
                 {mode === 'create' ? 'Create room' : 'Join room'}
@@ -255,14 +264,22 @@ function HowToPlay() {
           with the most votes.
         </li>
         <li>
-          If the initial answer gets <strong>no supporters</strong>, the round
-          ends and no one scores any points.
+          Challengers with duplicate answers are disqualified and subjected to a{' '}
+          <strong>2 point deduction</strong>.
+        </li>
+        <li>
+          If a challenger steals no votes, they suffer a{' '}
+          <strong>1 point deduction</strong>.
+        </li>
+        <li>
+          If the initial answer gets no supporters, the round ends and that
+          player <strong>loses a point</strong>.
         </li>
       </ul>
       <hr className='horizontal-center narrow-line'></hr>
       <h3 className='horizontal-center heavier-text'>
-        But remember, the persona can change any rule. What it says goes, so pay
-        attention.
+        Remember, the persona shapes each turn. It can change and create rules.
+        What it says goes, so pay attention.
       </h3>
       <Link to='/'>Back to home</Link>
     </section>
@@ -911,8 +928,14 @@ function Standings({
         (award === 0 ? 0 : scoreTransferDuration) + scoreTransferPause;
       return { player, award, startsAt };
     });
-  const animationDuration = Math.max(0, nextStart - scoreTransferPause - scoringLeadIn);
-  const availableTime = Math.max(0, (scoringDuration ?? Infinity) - scoringLeadIn - 500);
+  const animationDuration = Math.max(
+    0,
+    nextStart - scoreTransferPause - scoringLeadIn
+  );
+  const availableTime = Math.max(
+    0,
+    (scoringDuration ?? Infinity) - scoringLeadIn - 500
+  );
   const transferTime = Math.min(animationDuration, availableTime);
   const sequenceDuration = scoringLeadIn + transferTime;
 
@@ -933,11 +956,13 @@ function Standings({
     scoringStartedAt === undefined
       ? sequenceDuration
       : now + offset - scoringStartedAt;
-  const elapsed = displayElapsed < scoringLeadIn
-    ? displayElapsed
-    : displayElapsed >= sequenceDuration
-      ? scoringLeadIn + animationDuration
-      : scoringLeadIn + (displayElapsed - scoringLeadIn) * (animationDuration / transferTime);
+  const elapsed =
+    displayElapsed < scoringLeadIn
+      ? displayElapsed
+      : displayElapsed >= sequenceDuration
+        ? scoringLeadIn + animationDuration
+        : scoringLeadIn +
+          (displayElapsed - scoringLeadIn) * (animationDuration / transferTime);
 
   return (
     <ul className='rows standings'>
@@ -1100,7 +1125,8 @@ function Turn({
       : `First to ${format.target} points · ${turnLabel}`);
   const outcome = match?.outcome;
   const contenders = outcome?.playerIds.map(name).join(', ');
-  const winner = outcome?.type === 'winner' ? name(outcome.playerIds[0]) : undefined;
+  const winner =
+    outcome?.type === 'winner' ? name(outcome.playerIds[0]) : undefined;
   const finish =
     outcome?.type === 'shared-tie'
       ? `Shared tie among ${contenders}.`
@@ -1158,7 +1184,7 @@ function Turn({
       <div className='round-preview'>
         <section className='card turn-transition horizontal-center'>
           <h1>{name(view.answeringId!)}’s turn.</h1>
-          <p>Please wait while they review the prompt and persona.</p>
+          <p>Please wait while they review their persona.</p>
         </section>
       </div>
     );
@@ -1167,7 +1193,6 @@ function Turn({
   if (
     phase === 'turn-intro' ||
     phase === 'persona-preview' ||
-    phase === 'prompt-preview' ||
     (phase === 'answering' && !answering)
   ) {
     return (
@@ -1306,9 +1331,7 @@ function Turn({
           <p className='tag'>{progress}</p>
         )}
         {phase === 'complete' && finish && <p role='status'>{finish}</p>}
-        {phase === 'complete' && winner && (
-          <WinnerAnnouncement name={winner} />
-        )}
+        {phase === 'complete' && winner && <WinnerAnnouncement name={winner} />}
         {phase === 'complete' && result.missed && (
           <p className='horizontal-center'>No answer submitted.</p>
         )}

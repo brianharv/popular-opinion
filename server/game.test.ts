@@ -30,10 +30,9 @@ test.each(personas)('shows the catalog text for $name at preview and scoring', p
   game.next(3000)
   expect(game.show('a').persona).toEqual(persona)
   expect(game.show('b').persona).toBeUndefined()
-  game.next(3000)
-  game.next(10_000)
+  game.next(5000)
   game.send('a', { type: 'answer', phase: 'answering', text: 'Paris' })
-  game.next(20_000)
+  game.next(25_000)
   game.next(30_000)
   game.next(15_000)
   game.next(5000)
@@ -43,9 +42,9 @@ test.each(personas)('shows the catalog text for $name at preview and scoring', p
 test('duplicate review pauses the vote, preserves anonymity, and returns invalidated votes', () => {
   const game = setup(['a', 'b', 'c', 'd', 'e'])
   game.next(3000)
-  game.next(10_000)
+  game.next(5000)
   game.send('a', { type: 'answer', phase: 'answering', text: 'Paris' })
-  game.next(20_000)
+  game.next(25_000)
   for (const seat of ['b', 'c', 'd']) {
     game.send(seat, { type: 'challenge', phase: 'response', text: seat })
   }
@@ -93,26 +92,26 @@ test('reveals Paris as soon as answering ends and runs a private 15-second final
   expect(game.show('a')).toMatchObject({ phase: 'turn-intro', deadline: 3000 })
   expect(game.show('a').persona).toBeUndefined()
   expect(game.show('a').prompt).toBeUndefined()
-  expect(game.show('b').previewWait).toEqual({ deadline: 13_000, duration: 13_000 })
+  expect(game.show('b').previewWait).toEqual({ deadline: 8_000, duration: 8_000 })
   game.next(2999)
   expect(game.show('a').phase).toBe('turn-intro')
   game.next(1)
-  expect(game.show('a')).toMatchObject({ phase: 'persona-preview', deadline: 13_000, persona: { name: 'The Troll' } })
+  expect(game.show('a')).toMatchObject({ phase: 'persona-preview', deadline: 8_000, persona: { name: 'The Troll' } })
   expect(game.show('a').prompt).toBeUndefined()
   expect(game.show('b').prompt).toBeUndefined()
-  expect(game.show('b').previewWait).toEqual({ deadline: 13_000, duration: 13_000 })
+  expect(game.show('b').previewWait).toEqual({ deadline: 8_000, duration: 8_000 })
   expect(game.show('b').persona).toBeUndefined()
   expect(() => game.send('a', { type: 'answer', phase: 'answering', text: 'Too early' })).toThrow()
-  game.next(9999)
+  game.next(4999)
   expect(game.show('a').phase).toBe('persona-preview')
   game.next(1)
-  expect(game.show('a')).toMatchObject({ phase: 'answering', deadline: 33_000, phaseDuration: 20_000, prompt: 'What’s the best vacation destination?' })
+  expect(game.show('a')).toMatchObject({ phase: 'answering', deadline: 33_000, phaseDuration: 25_000, prompt: 'What’s the best vacation destination?' })
   expect(game.show('b').prompt).toBe('What’s the best vacation destination?')
   expect(game.show('b').previewWait).toBeUndefined()
   game.send('a', { type: 'answer', phase: 'answering', text: 'Paris' })
   expect(game.show('b')).toMatchObject({ entries: [] })
   expect(game.show('b').persona).toBeUndefined()
-  game.next(19_999)
+  game.next(24_999)
   expect(game.show('b').entries).toEqual([])
   game.next(1)
   expect(game.show('b').phase).toBe('response')
@@ -143,9 +142,9 @@ test('reveals Paris as soon as answering ends and runs a private 15-second final
 test('unanimous support halves Phase 2 and the Final Votes presentation', () => {
   const game = setup()
   game.next(3000)
-  game.next(10_000)
+  game.next(5000)
   game.send('a', { type: 'answer', phase: 'answering', text: 'Paris' })
-  game.next(20_000)
+  game.next(25_000)
   game.send('b', { type: 'support', phase: 'response' })
   game.next(30_000)
   expect(game.show('b')).toMatchObject({ phase: 'voting', phaseDuration: 7500 })
@@ -161,15 +160,15 @@ test('unanimous support halves Phase 2 and the Final Votes presentation', () => 
 })
 
 test.each([
-  { name: 'The Troll', points: 22, bonusTurn: undefined },
-  { name: 'The Karma Farmer', points: 0, bonusTurn: true },
-  { name: 'Ken M.', points: 6, bonusTurn: true }
+  { name: 'The Troll', points: 21, bonusTurn: undefined },
+  { name: 'The Karma Farmer', points: -1, bonusTurn: true },
+  { name: 'Ken M.', points: 5, bonusTurn: true }
 ])('$name scores $points and skips Phase 2 when everyone challenges', ({ name, points, bonusTurn }) => {
   const game = setup(undefined, personas.find(persona => persona.name === name)!)
   game.next(3000)
-  game.next(10_000)
+  game.next(5000)
   game.send('a', { type: 'answer', phase: 'answering', text: 'Paris' })
-  game.next(20_000)
+  game.next(25_000)
   for (const id of ['b', 'c', 'd']) {
     game.send(id, { type: 'challenge', phase: 'response', text: id })
   }
@@ -184,10 +183,10 @@ test.each([
 test('a late answer is rejected and a missed turn hides the Persona', () => {
   const game = setup()
   game.next(3000)
-  game.next(10_000)
+  game.next(5000)
   expect(() => game.send('a', { type: 'answer', phase: 'answering', text: 'Paris' }, 33_000)).toThrow()
-  game.next(20_000)
-  expect(game.show('b').phase).toBe('scoring')
+  game.next(25_000)
+  expect(game.show('b')).toMatchObject({ phase: 'scoring', phaseDuration: 8_000 })
   expect(game.show('b').result).toMatchObject({ missed: true, awards: { a: 0, b: 0, c: 0, d: 0 } })
   expect(game.show('b').result?.persona).toBeUndefined()
 })

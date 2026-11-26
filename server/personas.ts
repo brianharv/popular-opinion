@@ -16,7 +16,7 @@ export const personas = [
   },
   {
     name: 'The Troll',
-    rule: 'Earn 2 points per challenger. Earn an additional 5 points if you retain zero votes. Double your score this round if everyone challenges. Challengers earn no points.'
+    rule: 'Earn 2 points per challenger. Earn an additional 5 points if you retain zero votes. If everyone challenges, double your score and then subtract 1 point. Challengers cannot gain or lose points.'
   },
   {
     name: 'The Provocateur',
@@ -24,11 +24,11 @@ export const personas = [
   },
   {
     name: 'The Bipartisan',
-    rule: 'Your goal is to retain at least one vote while ending the round with the same vote tally as another challenger. Do this and score 10 points this round. Challengers do not score this round.'
+    rule: 'Your goal is to retain at least one vote while ending the round with the same vote tally as another challenger. Do this and score 10 points this round. Challengers cannot gain or lose points.'
   },
   {
     name: 'Yojimbo',
-    rule: 'Your goal is to get at least 2 challengers to tie in votes. If this happens, score 5 points for each tying challenger. Challengers do not score this round.'
+    rule: 'Your goal is to get at least 2 challengers to tie in votes. If this happens, score 5 points for each tying challenger. Challengers cannot gain points.'
   },
   {
     name: 'Sir John Falstaff',
@@ -60,7 +60,7 @@ export const personas = [
   },
   {
     name: 'Ken M.',
-    rule: 'Score 2 points for each challenger. Instead of scoring, each challenger loses 2 points. Take another turn.'
+    rule: 'Score 2 points for each challenger. Instead of scoring, each challenger loses 2 points. Disqualified challengers lose 2 more. If everyone challenges, subtract 1 point from your award. Take another turn.'
   },
   {
     name: 'TL;DR',
@@ -104,14 +104,22 @@ export function scorePersona(
   if (
     support > 0 &&
     name !== 'The Troll' &&
-    name !== 'Yojimbo' &&
     name !== 'The Bipartisan' &&
     name !== 'Ken M.' &&
     name !== 'FIFA President'
   ) {
     for (const entry of challenges) {
       const votes = totals[entry.id];
-      if (entry.disqualified || (name === 'Mr. Agreeable' && votes !== best)) continue;
+      if (entry.disqualified) {
+        if (name !== 'Mr. Agreeable') awards[entry.authorId] = -2;
+        continue;
+      }
+      if (name === 'Mr. Agreeable' && votes !== best) continue;
+      if (votes === 0) {
+        if (name !== 'Mr. Agreeable') awards[entry.authorId] = -1;
+        continue;
+      }
+      if (name === 'Yojimbo') continue;
       awards[entry.authorId] = votes * (votes === best ? 4 : 2);
       if (name === 'TL;DR') awards[entry.authorId] += votes;
     }
@@ -121,11 +129,14 @@ export function scorePersona(
     playerIds.every((id) => id === answeringId || points > awards[id]);
 
   if (name === 'Ken M.') {
-    award = 2 * count;
-    for (const entry of challenges) awards[entry.authorId] = -2;
+    award = 2 * count - (support === 0 ? 1 : 0);
+    for (const { authorId, disqualified } of challenges) {
+      awards[authorId] = disqualified ? -4 : -2;
+    }
     bonusTurn = true;
   } else if (support === 0) {
-    if (name === 'The Troll') award = (2 * count + 5) * 2;
+    award = -1;
+    if (name === 'The Troll') award = (2 * count + 5) * 2 - 1;
     if (name === 'The Provocateur') award = -5;
     if (name === 'Suddenly Libertarian') award = 3 * count;
   } else {
@@ -211,7 +222,9 @@ export function scorePersona(
         break;
       case 'FIFA President': {
         award = support + 2 * retained;
-        const challengerIds = new Set(challenges.map(({ authorId }) => authorId));
+        const challengerIds = new Set(
+          challenges.map(({ authorId }) => authorId)
+        );
         for (const id of playerIds) {
           if (id !== answeringId && !challengerIds.has(id)) {
             awards[id] = Math.ceil(award / 2);

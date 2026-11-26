@@ -1,0 +1,88 @@
+.phase {
+  align-items: baseline;
+  text-align: start;
+  margin-bottom: 1rem;
+}
+
+.phase-label {
+  margin-inline-start: auto;
+  text-align: end;
+}
+
+button.change-response {
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+  color: var(--blueberry);
+  font-size: 0.875rem;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.response-choices label {
+  flex: 1 1 7rem;
+  gap: 0.4rem;
+  padding: 0.4rem 0.5rem;
+  border: 1px solid #b8b3a9;
+  border-radius: 0.25rem;
+  background: linear-gradient(#fffdf8, #ede8df);
+  box-shadow:
+    inset 0 1px #fff,
+    0 1px 2px #42372926;
+  cursor: pointer;
+}
+
+.response-choices label:has(:checked) {
+  box-shadow: inset 0 2px 3px #42372926;
+}
+
+.support-choice:has(:checked) {
+  border-color: #8bac79;
+  background: #e1efd6;
+}
+
+.support-choice input {
+  accent-color: #2c6437;
+}
+
+.challenge-choice:has(:checked) {
+  border-color: #aa8dbd;
+  background: #eee3f5;
+}
+
+.challenge-choice input {
+  accent-color: var(--grape);
+}
+
+.disqualified-answer {
+  color: var(--muted);
+}
+
+.original-answer-label {
+  color: var(--muted);
+}
+
+.vote-rows button {
+  flex: 0 0 6rem;
+  min-height: 44px;
+  padding-inline: 0.35rem;
+  white-space: nowrap;
+  background: #e4e4e4;
+}
+
+.vote-rows button[aria-pressed='true'] {
+  background: var(--lime);
+  border-color: var(--ink);
+  color: var(--ink);
+  font-size: 1.25rem;
+  line-height: 1;
+  opacity: 1;
+}
+
+@media (hover: hover) {
+
+  button.change-response:enabled:hover {
+    color: var(--grape);
+  }
+}

@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import type { ServerMessage } from '../shared/protocol'
+import type { ServerMessage } from '../../shared/protocol'
 
 test('four seats reconnect, keep the Persona private, and share committed scoring', async ({ browser, baseURL }) => {
   test.setTimeout(45_000)

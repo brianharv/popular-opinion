@@ -1,9 +1,9 @@
 import { expect, test } from 'vitest'
-import { fixtureDraw } from './game'
-import { personas } from './personas'
-import { createApp } from './app'
-import { localDatabase } from './storage'
-import type { Credential, RoomView } from '../shared/protocol'
+import { fixtureDraw } from '../game'
+import { personas } from '../../shared/personas'
+import { createApp } from '../app'
+import { localDatabase } from '../storage'
+import type { Credential, RoomView } from '../../shared/protocol'
 
 const url = process.env.TEST_DATABASE_URL ?? localDatabase
 const timing = { 'turn-intro': 100, 'persona-preview': 150, answering: 1800, response: 500, voting: 500, 'duplicate-review': 1000, 'duplicate-result': 400, 'final-votes': 10_000, scoring: 10_000 }

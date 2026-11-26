@@ -1,0 +1,69 @@
+.header-timer {
+  position: relative;
+  grid-column: 2;
+  inline-size: 24px;
+  block-size: 24px;
+  --timer-transition-time: var(--turn-transition-time);
+}
+
+.header-timer[data-transition='results'] {
+  --timer-transition-time: var(--results-transition-time);
+}
+
+.header-timer[data-transition='duplicate'] {
+  --timer-transition-time: var(--duplicate-transition-time);
+}
+
+.header-timer > * {
+  position: absolute;
+  inset: 0;
+}
+
+.leaving-timer {
+  display: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+
+  .header-timer .timer {
+    animation: timer-enter var(--timer-transition-time) ease-in-out both;
+  }
+
+  .header-timer .timer[data-after-fade] {
+    animation-name: timer-enter-after-fade;
+  }
+
+  .header-timer .leaving-timer {
+    display: block;
+    animation: timer-leave var(--timer-transition-time) ease-in-out both;
+  }
+}
+
+@keyframes timer-enter {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes timer-enter-after-fade {
+  0%,
+  50% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes timer-leave {
+  0% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}

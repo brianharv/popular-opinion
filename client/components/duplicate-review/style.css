@@ -1,0 +1,27 @@
+@media (prefers-reduced-motion: no-preference) {
+
+  .duplicate-transition {
+    animation: duplicate-enter var(--duplicate-transition-time) ease-out both;
+  }
+}
+
+@keyframes duplicate-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-0.75rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.duplicate-vote-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.duplicate-vote-actions button.outline[aria-pressed='true'] {
+  background: var(--blueberry);
+  color: #fff;
+}

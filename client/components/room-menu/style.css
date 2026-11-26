@@ -1,0 +1,53 @@
+.room-menu-toggle {
+  display: grid;
+  place-items: center;
+  min-width: 44px;
+  padding: 0;
+  margin-inline-start: auto;
+  background-color: inherit;
+  border-color: transparent;
+  box-shadow: none;
+}
+
+.room-menu-toggle:hover {
+  border-color: rgb(160, 160, 160);
+}
+
+.room-menu-toggle img {
+  image-rendering: pixelated;
+}
+
+.room-menu-actions {
+  place-items: center;
+}
+
+.room-menu-with-close {
+  padding-block-start: max(2.75rem, var(--card-padding-block));
+}
+
+button.room-menu-close {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-end: 0;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.room-menu-close img {
+  width: 24px;
+  display: block;
+}
+
+button.room-menu-close:hover img {
+  filter: brightness(1.1);
+}
+
+button.room-menu-close:active img {
+  filter: brightness(0.85);
+}

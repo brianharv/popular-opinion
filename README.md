@@ -35,6 +35,8 @@ Connect the devices to the same Wi-Fi. Open `http://<host-LAN-IP>:3180` on each 
 
 ## Checks
 
+Server unit and PostgreSQL tests are in `server/tests/`. The Playwright suite and its server harness are in `tests/e2e/`.
+
 ```sh
 pnpm build
 pnpm test

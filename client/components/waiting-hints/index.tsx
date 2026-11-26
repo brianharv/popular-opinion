@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import './style.css';
 
 const hints = [
   'By default, challengers score 2 points per vote. Pay attention, some personas change this.',
@@ -39,7 +40,7 @@ export function WaitingHints() {
       >
         <img
           className='hint-icon'
-          src={new URL('./assets/win95-info.png', import.meta.url).href}
+          src={new URL('../../assets/win95-info.png', import.meta.url).href}
           alt=''
         />
         <span className='hint-copy'>
@@ -55,3 +56,4 @@ export function WaitingHints() {
     </div>
   );
 }
+

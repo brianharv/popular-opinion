@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest'
-import { action, advance, createTurn, view, fixtureDraw } from './game'
-import { personas } from './personas'
-import type { Action, Persona } from '../shared/protocol'
+import { action, advance, createTurn, view, fixtureDraw } from '../game'
+import { personas } from '../../shared/personas'
+import type { Action, Persona } from '../../shared/protocol'
 
 function setup(ids = ['a', 'b', 'c', 'd'], persona: Persona = fixtureDraw().persona) {
   let now = 0
@@ -18,11 +18,14 @@ function setup(ids = ['a', 'b', 'c', 'd'], persona: Persona = fixtureDraw().pers
   }
 }
 
-test('restores the persona from an older result using the current view shape', () => {
-  const { persona } = fixtureDraw()
-  const saved = { missed: false, awards: { a: 9 }, entries: [], votes: {}, totals: {}, modifier: persona }
+test('restores an older card name and rule with the current ID and subtitle', () => {
+  const modifier = { name: 'The College Try', rule: 'Original saved rule.' }
+  const saved = { missed: false, awards: { a: 9 }, entries: [], votes: {}, totals: {}, modifier }
   const restored = view('ROOM', [{ id: 'a', name: 'Alice' }], 'a', 'a', undefined, 0, saved)
-  expect(restored.result).toEqual({ missed: false, awards: { a: 9 }, entries: [], votes: {}, totals: {}, persona })
+  expect(restored.result).toEqual({
+    missed: false, awards: { a: 9 }, entries: [], votes: {}, totals: {},
+    persona: { ...modifier, id: 'painfully-earnest', subtitle: "Who's a good boy?" }
+  })
 })
 
 test.each(personas)('shows the catalog text for $name at preview and scoring', persona => {

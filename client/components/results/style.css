@@ -1,0 +1,10 @@
+.bonus-turn-card {
+  margin: 0.75rem 0;
+  padding: 0.45rem 0.75rem;
+  border: 1px solid var(--success-ink);
+  border-radius: 0.25rem;
+  background: var(--success-fill);
+  color: var(--success-ink);
+  text-align: center;
+  overflow-wrap: anywhere;
+}

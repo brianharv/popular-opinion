@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest'
-import { prompts, shuffle } from './prompts'
+import { prompts, shuffle } from '../prompts'
 
 test('a new deck shuffles all 292 unique Prompts without changing the catalog', () => {
   const first = shuffle(prompts, () => 0)

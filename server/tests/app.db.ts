@@ -1,12 +1,44 @@
 import { expect, test } from 'vitest'
+import { randomBytes } from 'node:crypto'
 import { fixtureDraw } from '../game'
 import { personas } from '../../shared/personas'
 import { createApp } from '../app'
-import { localDatabase } from '../storage'
+import { localDatabase, openStorage } from '../storage'
 import type { Credential, RoomView } from '../../shared/protocol'
 
 const url = process.env.TEST_DATABASE_URL ?? localDatabase
 const timing = { 'turn-intro': 100, 'persona-preview': 150, answering: 1800, response: 500, voting: 500, 'duplicate-review': 1000, 'duplicate-result': 400, 'final-votes': 10_000, scoring: 10_000 }
+
+test('restarting an interrupted turn consumes the next persona from its saved deck', async () => {
+  const storage = await openStorage(url)
+  const code = randomBytes(4).toString('hex').toUpperCase()
+  const seat = { id: 'host', name: 'Host', tokenHash: 'test' }
+  const checkpoint = {
+    hostId: seat.id,
+    answeringId: seat.id,
+    seats: [seat],
+    remainingPersonas: ['troll', 'good-bot'] as const,
+  }
+  try {
+    await storage.start(code, { ...checkpoint, remainingPersonas: [...checkpoint.remainingPersonas] })
+    for (const remaining of [['good-bot'], []]) {
+      const app = await createApp(url, { ...timing, 'turn-intro': 60_000 })
+      try {
+        const saved = (await storage.load()).find(room => room.code === code)?.checkpoint
+        expect(saved?.remainingPersonas).toEqual(remaining)
+      } finally {
+        await app.close()
+      }
+    }
+  } finally {
+    try {
+      const saved = (await storage.load()).find(room => room.code === code)?.checkpoint
+      if (saved) await storage.commit(code, saved, { ...saved, ended: true })
+    } finally {
+      await storage.close()
+    }
+  }
+})
 
 test('a real PostgreSQL checkpoint replays an interrupted turn and preserves committed points once', async () => {
   let persona = fixtureDraw().persona

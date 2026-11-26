@@ -22,6 +22,8 @@ This is the working v1 specification for an original, browser-based party game. 
 
 ## Regular turn
 
+Regular and bonus turns share one shuffled Persona deck per match. Consume a Persona when drawn and persist the remaining order. Reshuffle the full catalog at exhaustion. A repeat across shuffles is allowed.
+
 1. Draw a Prompt and Persona together. Show the Answering Player a personalized turn announcement for 3 seconds. Then show them only the Persona for 5 seconds. During the announcement and Persona preview, opponents see a single waiting screen with the Answering Player’s name and a countdown. Reveal the Prompt to everyone when the answer timer starts. Keep the Persona private to the Answering Player until scoring.
 2. The Answering Player gets 25 seconds to submit and revise. After a submission, show the server-accepted answer and let the player reopen the form to revise it. At zero, lock the last submitted answer. If no answer was submitted, skip directly to an 8-second shared “No answer submitted” scoring view with current standings, zero awards, and no Persona reveal.
 3. Reveal the locked answer as soon as the answer timer reaches zero.

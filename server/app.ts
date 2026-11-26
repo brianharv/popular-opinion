@@ -8,8 +8,8 @@ import { z } from 'zod'
 import { actionSchema, nameSchema } from '../shared/protocol'
 import { maximumPlayers, minimumPlayers } from '../shared/match-options'
 import { action, advance, createTurn, durations, view } from './game'
-import { personas } from '../shared/personas'
 import type { Persona } from '../shared/protocol'
+import { drawNextPersona } from './persona-deck'
 import { createMatch, nextAnswerer, recordTurn } from './match'
 import { prompts, shuffle } from './prompts'
 import { openStorage, type Checkpoint, type Seat } from './storage'
@@ -23,7 +23,11 @@ type Room = {
   turnNumber?: number
   scheduledTurnNumber?: number
   isBonusTurn?: boolean
-  pendingDraw?: { prompt: string; remainingPrompts: string[] }
+  pendingDraw?: Pick<Checkpoint, 'remainingPersonas'> & {
+    prompt: string
+    persona: Persona
+    remainingPrompts: string[]
+  }
   queue: Promise<void>
   sockets: Map<WebSocket, string>
   timer?: ReturnType<typeof setTimeout>
@@ -37,7 +41,7 @@ export async function createApp(
   url: string,
   timing = durations,
   serveClient = false,
-  drawPersona: () => Persona = () => personas[randomInt(personas.length)]
+  drawPersona?: () => Persona
 ) {
   const storage = await openStorage(url)
   const app = Fastify()
@@ -90,10 +94,13 @@ export async function createApp(
     if (!room.pendingDraw) {
       const deck = checkpoint.remainingPrompts?.length ? checkpoint.remainingPrompts : shuffle(prompts, randomInt)
       const [prompt, ...remainingPrompts] = deck
-      room.pendingDraw = { prompt, remainingPrompts }
+      const personaDraw = drawPersona
+        ? { persona: drawPersona(), remainingPersonas: checkpoint.remainingPersonas }
+        : drawNextPersona(checkpoint.remainingPersonas, randomInt)
+      room.pendingDraw = { prompt, remainingPrompts, ...personaDraw }
     }
-    const { prompt, remainingPrompts } = room.pendingDraw
-    const after = { ...checkpoint, remainingPrompts }
+    const { prompt, persona, remainingPrompts, remainingPersonas } = room.pendingDraw
+    const after = { ...checkpoint, remainingPrompts, remainingPersonas }
     await storage.commit(room.code, checkpoint, after)
     room.checkpoint = after
     room.pendingDraw = undefined
@@ -102,7 +109,7 @@ export async function createApp(
       room.isBonusTurn = Boolean(match.bonusAnswerer)
       room.scheduledTurnNumber = match.completedTurns + (room.isBonusTurn ? 0 : 1)
     }
-    room.turn = createTurn(roster(room), answeringId, Date.now, () => ({ prompt, persona: drawPersona() }), randomUUID, timing)
+    room.turn = createTurn(roster(room), answeringId, Date.now, () => ({ prompt, persona }), randomUUID, timing)
   }
 
   function schedule(room: Room, retry = false) {

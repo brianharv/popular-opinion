@@ -22,9 +22,9 @@ Use a private room for 4–12 players. The game is designed for co-located play.
 
 ## Card draws
 
-- Draw one random Persona independently each regular or bonus turn. Draws are with replacement, so the same Persona can appear on consecutive turns. Tiebreakers use no Persona.
+- Regular and bonus turns share one shuffled Persona deck per match. Discard each Persona when drawn. When the deck is empty, reshuffle all Personas. The last draw of one shuffle can match the first draw of the next. Tiebreakers use no Persona.
 - Regular turns, bonus turns, and tiebreakers share one Prompt deck per match. Start with the full deck in shuffled order and draw without replacement. When a draw is needed and the deck is empty, restore every Prompt, shuffle the full deck, and continue the same match.
-- Persist the remaining Prompt order and consume each draw even if the interrupted turn never commits its score. A replay after a server restart draws from the remaining deck, reshuffling if it is empty.
+- Persist the remaining Prompt and Persona orders and consume each draw even if the interrupted turn never commits its score. A replay after a server restart draws from the remaining decks, reshuffling any empty deck.
 
 ## Anatomy of a turn
 

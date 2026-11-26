@@ -2,6 +2,7 @@ import { Kysely, PostgresDialect } from 'kysely'
 import pg from 'pg'
 import type { Match } from './match'
 import type { Player, Result } from '../shared/protocol'
+import type { PersonaId } from '../shared/personas'
 
 export type Seat = Player & { tokenHash: string }
 export type Checkpoint = {
@@ -10,6 +11,7 @@ export type Checkpoint = {
   result?: Result
   ended?: boolean
   remainingPrompts?: string[]
+  remainingPersonas?: PersonaId[]
 } & (
   | { match: Match; answeringId?: never }
   | { match?: never; answeringId: string }

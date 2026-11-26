@@ -11,7 +11,7 @@ const hints = [
   'A retained vote is a support vote that stays on the original answer through the end of final voting.',
   'If you do not support or challenge an answer before the timer runs out, you will automatically vote “support.”',
   'Duplicate or closely related answers should be disqualified. Click “Report Duplicates” to put them to a vote.',
-  'Personas are randomly selected each turn. The same persona can appear more than once in a game.',
+  'Personas are drawn from a shuffled deck. Once the deck runs out, every persona becomes available again.',
   'It’s in the spirit of the game to avoid collusion.',
   'If you lose connection, rejoin with the room code to reclaim your seat.',
   'If you challenge, you cannot vote that round.',

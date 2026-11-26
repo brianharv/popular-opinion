@@ -23,7 +23,7 @@ export const personas = [
     name: 'The Troll',
     subtitle:
       '“If you don’t have anything nice to say, say it on the internet.”',
-    rule: 'Earn 2 points per challenger. Earn an additional 5 points if you retain zero votes. If everyone challenges, double your score and then subtract 1 point. Challengers cannot gain or lose points.'
+    rule: 'Earn 2 points per challenger. Earn an additional 5 points if you retain zero votes. If everyone challenges, double your score. Challengers cannot gain or lose points.'
   },
   {
     id: 'provocateur',
@@ -94,7 +94,7 @@ export const personas = [
     name: 'Ken M.',
     subtitle:
       "“you'd be suprised at how many people dont know anything about knowledge and yet we should forgive them for they know not what they not know.”",
-    rule: 'Score 2 points for each challenger. Instead of scoring, each challenger loses 2 points. Disqualified challengers lose 2 more. If everyone challenges, subtract 1 point from your award. Take another turn.'
+    rule: 'Score 2 points for each challenger. Instead of scoring, each challenger loses 2 points. Disqualified challengers lose 2 more. Take another turn.'
   },
   {
     id: 'tl-dr',
@@ -130,7 +130,8 @@ export const personas = [
   {
     id: 'crowdsourcer',
     name: 'The Crowdsourcer',
-    subtitle: 'You can finally fund that album, get out of medical debt, or go to Disnleyland again.',
+    subtitle:
+      'You can finally fund that album, get out of medical debt, or go to Disnleyland again.',
     rule: 'Score 2 points per support vote. Supporters score points equal to the number of players in the game.'
   }
 ] as const;

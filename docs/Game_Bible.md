@@ -38,6 +38,28 @@ Use a private room for 4–12 players. The game is designed for co-located play.
 
 Timed phases run to zero even if everyone has submitted. The voting clock keeps running while a player selects duplicates and pauses when the server accepts the flag. A completed review restores the greater of the paused time and 10 seconds when play resumes.
 
+## Waiting hints
+
+Opponents can cycle through these hints while waiting for the Answering Player. Each player starts at a random hint and advances through this order.
+
+1. By default, challengers score 2 points per vote. Pay attention, some personas change this.
+2. Provided there is enough time, you can always change your response by clicking “Change your mind?”
+3. Some personas punish challengers.
+4. By default, the challenger(s) with the most votes out of all players that round scores double.
+5. Usually, if an answer receives all challenges and no support, the round ends immediately and the answering player loses a point. Some personas change this rule…
+6. If an answer seems intentionally bad, there might be a good reason for that...
+7. A retained vote is a support vote that stays on the original answer through the end of final voting.
+8. If you do not support or challenge an answer before the timer runs out, you will automatically vote “support.”
+9. It is possible to gain and lose points in the same turn
+10. Duplicate or closely related answers should be disqualified. Click “Report Duplicates” to put them to a vote.
+11. Personas are drawn from a shuffled deck. Once the deck runs out, every persona becomes available again.
+12. It’s in the spirit of the game to avoid collusion.
+13. If you lose connection, rejoin with the room code to reclaim your seat.
+14. If you challenge, you cannot vote that round.
+15. Challengers can flag duplicate answers.
+16. Disqualified challengers can still be penalized by the modifier.
+17. Some personas reward supporters more than other players
+
 ## Duplicate review
 
 - During Phase 2, when at least two challenge answers can be selected, any player except the Answering Player can select two or more for review. Give selection a Cancel action and accept flags until the voting deadline. Canceling preserves the player's opportunity to flag.

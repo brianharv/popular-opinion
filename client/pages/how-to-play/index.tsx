@@ -50,8 +50,9 @@ export function HowToPlay() {
       </ul>
       <hr className='horizontal-center narrow-line'></hr>
       <h3 className='horizontal-center heavier-text'>
-        Remember, the persona shapes each turn. It can change and create rules.
-        What it says goes, so pay attention.
+        Remember, the persona makes the rules different each turn. If an above
+        rule hasn't been addressed in the persona, it is still in effect. Pay
+        attention.
       </h3>
       <Link to='/'>Back to home</Link>
     </section>

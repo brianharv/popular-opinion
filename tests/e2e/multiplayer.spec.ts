@@ -403,7 +403,7 @@ test('waiting hints wrap in order and keep their place when the prompt appears',
   const hint = page.locator('.waiting-hints')
   const visibleHint = hint.locator('[aria-live]')
   const waitingCard = page.locator('.round-preview .card')
-  await expect(visibleHint).toContainText('Disqualified challengers can still be penalized')
+  await expect(visibleHint).toHaveText('Some personas reward supporters more than other players')
   const waitingCardTop = await waitingCard.evaluate(async card => {
     await Promise.all(card.getAnimations().map(animation => animation.finished))
     return card.getBoundingClientRect().top

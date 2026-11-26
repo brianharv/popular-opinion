@@ -28,8 +28,8 @@ test.each([
   ['yojimbo', 10, 0, false],
   ['sir-john-falstaff', 9, 4, false],
   ['suddenly-libertarian', 6, 4, false],
-  ['finsta', 8, 1, false],
-  ['double-down', 8, 4, true],
+  ['finsta', 3, 3, false],
+  ['double-down', 8, 4, false],
   ['ambien-defense', 7, 4, false],
   ['daydreamer', 7, 4, false],
   ['karma-farmer', 4, 4, true],
@@ -93,6 +93,11 @@ test('the new challenger rules preserve the distinct tallies', () => {
     .toMatchObject({ a: 8, b: 8, c: 0 });
 });
 
+test('The Crowdsourcer awards the roster size to every initial supporter, even those who switch', () => {
+  expect(scorePersona('crowdsourcer', 'a', players, challenges, { x: 1, y: 1 }, 1).awards)
+    .toEqual({ a: 6, b: 4, c: 4, d: 6, e: 6, f: 6 });
+});
+
 test('FIFA President rounds up the award for every initial supporter', () => {
   expect(scorePersona('fifa-president', 'a', players, challenges, { x: 1, y: 1 }, 1).awards)
     .toEqual({ a: 5, b: 0, c: 0, d: 3, e: 3, f: 3 });
@@ -138,7 +143,7 @@ test('disqualified challenges still count and The Finsta leaves their awards at 
   expect(score('troll').a).toBe(6);
   expect(score('panderer')).toEqual({ a: -2, b: -2, c: -2, d: 4, e: 0, f: 0 });
   expect(score('yojimbo')).toEqual({ a: 0, b: -2, c: -2, d: 0, e: 0, f: 0 });
-  expect(score('finsta')).toEqual({ a: 8, b: 0, c: 0, d: 1, e: 0, f: 0 });
+  expect(score('finsta')).toEqual({ a: 3, b: 0, c: 0, d: 3, e: 0, f: 0 });
   expect(score('ken-m')).toEqual({ a: 6, b: -4, c: -4, d: -2, e: 0, f: 0 });
 });
 
@@ -148,13 +153,13 @@ test('Suddenly Libertarian triples retained votes when they outnumber challenger
 });
 
 test('The Finsta awards no bonus when round points are tied after deductions', () => {
-  expect(scorePersona('finsta', 'a', [...players, 'g', 'h', 'i'], challenges, { x: 3, y: 0 }, 3).awards)
-    .toMatchObject({ a: 9, b: 9, c: 0 });
+  expect(scorePersona('finsta', 'a', players.slice(0, 5), challenges, { x: 1, y: 0 }, 1).awards)
+    .toMatchObject({ a: 3, b: 3, c: 0 });
 });
 
-test('The Finsta floors a positive challenger award below three at zero', () => {
+test('The Finsta subtracts one point from both leading and trailing challengers', () => {
   expect(scorePersona('finsta', 'a', players, challenges, { x: 2, y: 1 }, 0).awards)
-    .toMatchObject({ a: 0, b: 5, c: 0 });
+    .toMatchObject({ a: 0, b: 7, c: 1 });
 });
 
 test('a challenger lead earns Ambien a bonus and wipes out The Double Down', () => {

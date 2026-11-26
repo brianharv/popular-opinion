@@ -102,15 +102,14 @@ export function scorePersona(
         break;
       case 'finsta':
         for (const { authorId } of challenges) {
-          awards[authorId] = Math.max(0, awards[authorId] - 3);
+          awards[authorId] = Math.max(0, awards[authorId] - 1);
         }
         award = 3 * retained;
         if (leads(award)) award += 5;
         break;
       case 'double-down':
         award = 2 * support + 2 * retained;
-        bonusTurn = leads(award);
-        if (!bonusTurn) award = 0;
+        if (!leads(award)) award = 0;
         break;
       case 'ambien-defense':
         award = 2 * support + retained;
@@ -135,14 +134,16 @@ export function scorePersona(
       case 'mr-agreeable':
         award = Math.max(...Object.values(awards));
         break;
-      case 'fifa-president': {
-        award = support + 2 * retained;
+      case 'fifa-president':
+      case 'crowdsourcer': {
+        award = id === 'fifa-president' ? support + 2 * retained : 2 * support;
+        const supporterAward = id === 'fifa-president' ? Math.ceil(award / 2) : playerIds.length;
         const challengerIds = new Set(
           challenges.map(({ authorId }) => authorId)
         );
         for (const id of playerIds) {
           if (id !== answeringId && !challengerIds.has(id)) {
-            awards[id] = Math.ceil(award / 2);
+            awards[id] = supporterAward;
           }
         }
         break;

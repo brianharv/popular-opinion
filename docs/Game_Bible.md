@@ -114,13 +114,13 @@ Take whichever is higher: your retained votes or the number of challengers. Trip
 
 _The recommended method for arguing with strangers on the social media platform you just bought._
 
-3 per retained vote. Subtract 3 from each challenger’s award for the round, with a minimum award of zero. Add 5 if the Answering Player has the most round points outright after those deductions and before the bonus.
+3 per retained vote. Subtract 1 from each challenger’s award for the round, with a minimum award of zero. Add 5 if the Answering Player has the most round points outright after those deductions and before the bonus.
 
 ### The Double Down
 
 _Prediction markets say this is a key indicator of a forthcoming “break from socials.”_
 
-Score 2 points per support vote plus 2 points per retained vote. If you score the highest this round, take a bonus turn. Otherwise your score this turn is zero.
+Score 2 points for each support and retained vote. If you do not score the highest this round, your score is 0 this turn.
 
 ### The Ambien Defense
 
@@ -166,7 +166,7 @@ Gain 1 point per player, including yourself. Take another turn.
 
 ### Good Bot
 
-_Beep boap boop_
+_Beep boop beep_
 
 Score 1 point per support vote and 1 point per retained vote.
 
@@ -181,6 +181,12 @@ Only eligible challengers tied for the most votes receive their default award. M
 _Kickbacks, get it? Soccer? Kick?_
 
 Score 1 point per support vote and 2 per retained vote. Each initial supporter gains half your award, rounded up. Challengers score zero.
+
+### The Crowdsourcer
+
+_You can finally fund that album, get out of medical debt, or go to Disnleyland again._
+
+Score 2 points per support vote. Supporters score points equal to the number of players in the game. This applies to each initial supporter, including those who switch in Phase 2.
 
 ## Tiebreakers
 

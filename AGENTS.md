@@ -57,8 +57,8 @@ Default challenger award is 2 points per final vote, doubled for every eligible 
 | Yojimbo             | Score 5 per eligible challenger whose positive final vote tally ties another challenger’s. Challengers cannot earn points. Those with zero final votes lose 1 point if eligible or 2 points if disqualified. |
 | Sir John Falstaff       | 1 per challenger plus 2 per retained vote. Add 5 if the Answering Player leads or ties for the lead in final votes.                                                                                                            |
 | Suddenly Libertarian | Triple the greater of the retained vote count and the challenger count. Applies even if everyone challenges.                                                                                                                                           |
-| The Finsta               | 3 per retained vote. Subtract 3 from each challenger’s award for the round, with a minimum award of zero. Add 5 if the Answering Player has the most round points outright after those deductions and before the bonus. |
-| The Double Down          | Tentative award of 2 per support vote plus 2 per retained vote. If the Answering Player has a clear lead in points for the turn, keep that award and grant a bonus turn. Otherwise their award is zero.                           |
+| The Finsta               | 3 per retained vote. Subtract 1 from each challenger’s award for the round, with a minimum award of zero. Add 5 if the Answering Player has the most round points outright after those deductions and before the bonus. |
+| The Double Down          | Score 2 per support vote and 2 per retained vote if the Answering Player leads the round outright. Otherwise score zero when Phase 2 takes place.                           |
 | The Ambien Defense   | 2 per support vote plus 1 per retained vote. Keep the award and grant a bonus turn if the Answering Player does not have a clear lead in points for the turn.                                                                     |
 | The Daydreamer | Match the highest challenger award, or start at zero if nobody challenged, then add 3. Apply the standard zero-support rule. |
 | The Karma Farmer | Score 1 per support vote and 1 per retained vote. Grant a bonus turn even when everyone challenges and the Answering Player loses 1 point. |
@@ -68,6 +68,7 @@ Default challenger award is 2 points per final vote, doubled for every eligible 
 | Good Bot | Score 1 per support vote and 1 per retained vote. |
 | Mr. Agreeable | Only eligible challengers tied for the most votes receive their default award. The Answering Player matches one such award, or scores zero if nobody challenged. |
 | FIFA President | Score 1 per support vote and 2 per retained vote. Each initial supporter receives half the Answering Player’s award, rounded up. Challengers score zero. |
+| The Crowdsourcer | Score 2 per support vote. Each initial supporter earns 1 point per player. Challengers use default scoring. |
 
 ## Tiebreaker
 

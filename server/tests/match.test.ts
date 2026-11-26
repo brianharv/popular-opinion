@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest'
-import { createMatch, nextAnswerer, recordTurn } from './match'
+import { createMatch, nextAnswerer, recordTurn } from '../match'
 
 const order = ['a', 'b', 'c', 'd']
 

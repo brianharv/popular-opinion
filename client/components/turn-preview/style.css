@@ -1,0 +1,31 @@
+.round-preview {
+  flex: 1;
+  display: grid;
+  place-items: center;
+}
+
+.round-preview > .card {
+  width: min(100%, 32rem);
+  text-align: center;
+}
+
+.round-preview > .card > :is(h1, aside) {
+  margin-block: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .turn-transition {
+    animation: turn-enter var(--turn-transition-time) ease-in-out both;
+  }
+}
+
+@keyframes turn-enter {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

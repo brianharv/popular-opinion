@@ -1,0 +1,63 @@
+.start-game:enabled {
+  background: var(--success-fill);
+  border-color: var(--success-ink);
+  color: var(--success-ink);
+}
+
+.start-game:disabled {
+  background: #eeebe8;
+  color: var(--muted);
+  border-color: var(--edge);
+  box-shadow: none;
+  opacity: 1;
+  cursor: not-allowed;
+}
+
+.match-setup {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.4rem 0.75rem;
+  margin-top: 0.6rem;
+}
+
+.match-setup label {
+  align-content: end;
+  font-size: 0.875rem;
+}
+
+.match-setup select {
+  --select-inset: 0.65rem;
+  --picker-width: 2.15rem;
+  min-width: 0;
+  font-size: 1rem;
+  appearance: none;
+  padding-inline: var(--select-inset) calc(var(--picker-width) + 0.25rem);
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='m1 1.5 5 5 5-5' fill='none' stroke='%2357442a' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"),
+    linear-gradient(#ab9472, #ab9472), linear-gradient(#f5e9d2, #e8d6b3);
+  background-repeat: no-repeat;
+  background-position:
+    right var(--select-inset) center,
+    right var(--picker-width) center,
+    right center;
+  background-size:
+    0.75rem auto,
+    1px 100%,
+    var(--picker-width) 100%;
+}
+
+@media (forced-colors: active) {
+  .match-setup select {
+    appearance: auto;
+    padding-inline: var(--select-inset);
+    background-image: none;
+  }
+}
+
+.match-setup .start-game,
+.match-setup .start-hint {
+  grid-column: 1 / -1;
+}
+
+.match-setup .start-hint {
+  min-block-size: 3em;
+}

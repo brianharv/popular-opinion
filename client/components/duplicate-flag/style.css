@@ -1,0 +1,28 @@
+button.outline.report-duplicates {
+  color: var(--strawberry);
+  border-color: var(--strawberry);
+}
+
+.duplicate-choice {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-height: 44px;
+  overflow-wrap: anywhere;
+}
+
+.duplicate-choice span {
+  min-width: 0;
+}
+
+.duplicate-choice input {
+  flex: none;
+}
+
+@media (hover: hover) {
+
+  button.outline.report-duplicates:enabled:hover {
+    background: #fbeef1;
+    border-color: var(--strawberry);
+  }
+}

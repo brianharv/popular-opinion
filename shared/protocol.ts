@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import type { PersonaId } from './personas'
 import { pointOptions, roundOptions } from './match-options'
 
 export const nameSchema = z.string().trim().min(1).max(24)
@@ -24,7 +25,7 @@ export type MatchOutcome = { type: 'winner' | 'shared-tie' | 'tiebreaker'; playe
 export type Phase = Action['phase'] | 'turn-intro' | 'persona-preview' | 'duplicate-result' | 'final-votes' | 'scoring' | 'complete'
 export type Player = { id: string; name: string }
 export type Entry = { id: string; authorId: string; text: string; disqualified?: boolean }
-export type Persona = { name: string; rule: string }
+export type Persona = { id?: PersonaId; name: string; subtitle?: string; rule: string }
 export type Result = {
   missed: boolean
   awards: Record<string, number>

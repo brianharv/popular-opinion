@@ -1,0 +1,69 @@
+html:has(.top-with-timer) {
+  scrollbar-gutter: stable;
+}
+
+main:has(.round-preview, .hint-carousel) {
+  display: flex;
+  flex-direction: column;
+  min-block-size: 100dvh;
+  padding-bottom: clamp(1.25rem, 5vw, 3rem);
+}
+
+.top {
+  flex-wrap: wrap;
+  gap: 0.35rem 0.5rem;
+  margin-bottom: 0.5rem;
+  padding: 0 0.15rem 0.25rem;
+  border-bottom: 1px solid var(--edge);
+}
+
+.top-with-timer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 24px minmax(0, 1fr);
+}
+
+.top-with-timer > .room-menu-toggle {
+  grid-column: 3;
+}
+
+.top a {
+  color: #fff;
+  font: 400 1.75rem/1 var(--display);
+  text-decoration: none;
+}
+
+.top strong {
+  color: #fff;
+  letter-spacing: 0.06em;
+}
+
+.top .room-back {
+  display: grid;
+  place-items: center;
+  min-width: 44px;
+  min-height: 32px;
+  font-family: system-ui, sans-serif;
+}
+
+.top :is(.copy-code, .room-menu-toggle) {
+  min-height: 32px;
+}
+
+.end-game-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.confirm-end-game {
+  background: var(--strawberry);
+  border-color: var(--strawberry);
+  color: #fff;
+}
+
+@media (hover: hover) {
+
+  .top a:not(.home-action):hover {
+    color: #fff;
+  }
+}

@@ -22,9 +22,9 @@ Use a private room for 4–12 players. The game is designed for co-located play.
 
 ## Card draws
 
-- Draw one random Persona independently each regular or bonus turn. Draws are with replacement, so the same Persona can appear on consecutive turns. Tiebreakers use no Persona.
+- Regular and bonus turns share one shuffled Persona deck per match. Discard each Persona when drawn. When the deck is empty, reshuffle all Personas. The last draw of one shuffle can match the first draw of the next. Tiebreakers use no Persona.
 - Regular turns, bonus turns, and tiebreakers share one Prompt deck per match. Start with the full deck in shuffled order and draw without replacement. When a draw is needed and the deck is empty, restore every Prompt, shuffle the full deck, and continue the same match.
-- Persist the remaining Prompt order and consume each draw even if the interrupted turn never commits its score. A replay after a server restart draws from the remaining deck, reshuffling if it is empty.
+- Persist the remaining Prompt and Persona orders and consume each draw even if the interrupted turn never commits its score. A replay after a server restart draws from the remaining decks, reshuffling any empty deck.
 
 ## Anatomy of a turn
 
@@ -37,6 +37,28 @@ Use a private room for 4–12 players. The game is designed for co-located play.
 7. When the Phase 2 timer reaches zero, all votes must point to valid answers before scoring. Resolve the Persona and challenger awards, commit the outcome, then show Final Votes for 5 seconds (2.5 seconds if every opponent supported), followed by the Results standings for 8 seconds before automatically advancing. Show the same results on every device and highlight the viewer's standings row.
 
 Timed phases run to zero even if everyone has submitted. The voting clock keeps running while a player selects duplicates and pauses when the server accepts the flag. A completed review restores the greater of the paused time and 10 seconds when play resumes.
+
+## Waiting hints
+
+Opponents can cycle through these hints while waiting for the Answering Player. Each player starts at a random hint and advances through this order.
+
+1. By default, challengers score 2 points per vote. Pay attention, some personas change this.
+2. Provided there is enough time, you can always change your response by clicking “Change your mind?”
+3. Some personas punish challengers.
+4. By default, the challenger(s) with the most votes out of all players that round scores double.
+5. Usually, if an answer receives all challenges and no support, the round ends immediately and the answering player loses a point. Some personas change this rule…
+6. If an answer seems intentionally bad, there might be a good reason for that...
+7. A retained vote is a support vote that stays on the original answer through the end of final voting.
+8. If you do not support or challenge an answer before the timer runs out, you will automatically vote “support.”
+9. It is possible to gain and lose points in the same turn
+10. Duplicate or closely related answers should be disqualified. Click “Report Duplicates” to put them to a vote.
+11. Personas are drawn from a shuffled deck. Once the deck runs out, every persona becomes available again.
+12. It’s in the spirit of the game to avoid collusion.
+13. If you lose connection, rejoin with the room code to reclaim your seat.
+14. If you challenge, you cannot vote that round.
+15. Challengers can flag duplicate answers.
+16. Disqualified challengers can still be penalized by the modifier.
+17. Some personas reward supporters more than other players
 
 ## Duplicate review
 
@@ -114,13 +136,13 @@ Take whichever is higher: your retained votes or the number of challengers. Trip
 
 _The recommended method for arguing with strangers on the social media platform you just bought._
 
-3 per retained vote. Subtract 3 from each challenger’s award for the round, with a minimum award of zero. Add 5 if the Answering Player has the most round points outright after those deductions and before the bonus.
+3 per retained vote. Subtract 1 from each challenger’s award for the round, with a minimum award of zero. Add 5 if the Answering Player has the most round points outright after those deductions and before the bonus.
 
 ### The Double Down
 
 _Prediction markets say this is a key indicator of a forthcoming “break from socials.”_
 
-Score 2 points per support vote plus 2 points per retained vote. If you score the highest this round, take a bonus turn. Otherwise your score this turn is zero.
+Score 2 points for each support and retained vote. If you do not score the highest this round, your score is 0 this turn.
 
 ### The Ambien Defense
 
@@ -166,7 +188,7 @@ Gain 1 point per player, including yourself. Take another turn.
 
 ### Good Bot
 
-_Beep boap boop_
+_Beep boop beep_
 
 Score 1 point per support vote and 1 point per retained vote.
 
@@ -181,6 +203,12 @@ Only eligible challengers tied for the most votes receive their default award. M
 _Kickbacks, get it? Soccer? Kick?_
 
 Score 1 point per support vote and 2 per retained vote. Each initial supporter gains half your award, rounded up. Challengers score zero.
+
+### The Crowdsourcer
+
+_You can finally fund that album, get out of medical debt, or go to Disnleyland again._
+
+Score 2 points per support vote. Supporters score points equal to the number of players in the game. This applies to each initial supporter, including those who switch in Phase 2.
 
 ## Tiebreakers
 

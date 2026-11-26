@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import type { ServerMessage } from '../shared/protocol'
+import type { ServerMessage } from '../../shared/protocol'
 
 test('four seats reconnect, keep the Persona private, and share committed scoring', async ({ browser, baseURL }) => {
   test.setTimeout(45_000)
@@ -403,7 +403,7 @@ test('waiting hints wrap in order and keep their place when the prompt appears',
   const hint = page.locator('.waiting-hints')
   const visibleHint = hint.locator('[aria-live]')
   const waitingCard = page.locator('.round-preview .card')
-  await expect(visibleHint).toContainText('Disqualified challengers can still be penalized')
+  await expect(visibleHint).toHaveText('Some personas reward supporters more than other players')
   const waitingCardTop = await waitingCard.evaluate(async card => {
     await Promise.all(card.getAnimations().map(animation => animation.finished))
     return card.getBoundingClientRect().top

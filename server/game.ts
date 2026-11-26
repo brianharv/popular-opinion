@@ -7,7 +7,8 @@ import type {
   Result,
   RoomView
 } from '../shared/protocol';
-import { personas, scorePersona } from './personas';
+import { findPersona, personas } from '../shared/personas';
+import { scorePersona } from './persona-scoring';
 
 export const durations = {
   'turn-intro': 3_000,
@@ -24,7 +25,7 @@ export const fixtureDraw = (
   prompt = 'What’s the best vacation destination?'
 ): { prompt: string; persona: Persona } => ({
   prompt,
-  persona: personas.find(({ name }) => name === 'The Troll')!
+  persona: personas.find(({ id }) => id === 'troll')!
 });
 
 type Turn = {
@@ -218,11 +219,11 @@ function score(turn: Turn, now: number): Turn {
     ])
   );
   const playerIds = turn.players.map(({ id }) => id);
-  const card = personas.find(({ name }) => name === turn.persona.name);
+  const card = findPersona(turn.persona);
   const { awards, bonusTurn } =
     turn.original && card
       ? scorePersona(
-          card.name,
+          card.id,
           turn.answeringId,
           playerIds,
           turn.challenges,
@@ -234,7 +235,7 @@ function score(turn: Turn, now: number): Turn {
           bonusTurn: false
         };
   const kenAllChallenged =
-    card?.name === 'Ken M.' && turn.challenges.length === playerIds.length - 1;
+    card?.id === 'ken-m' && turn.challenges.length === playerIds.length - 1;
   const phase =
     turn.original && !kenAllChallenged && turn.durations['final-votes'] > 0
       ? 'final-votes'
@@ -348,10 +349,15 @@ export function view(
   if (!turn) {
     if (!savedResult) return { ...base, phase: 'lobby' };
     const { modifier: legacyPersona, ...result } = savedResult;
+    const savedPersona = result.persona ?? legacyPersona;
+    const card = savedPersona && findPersona(savedPersona);
+    const persona = savedPersona && card
+      ? { id: card.id, subtitle: card.subtitle, ...savedPersona }
+      : savedPersona;
     return {
       ...base,
       phase: 'complete',
-      result: { ...result, persona: result.persona ?? legacyPersona }
+      result: { ...result, persona }
     };
   }
   const { phase, deadline, answeringId, prompt, original, challenges, result } =

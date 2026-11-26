@@ -1,0 +1,35 @@
+.persona-card {
+  padding: clamp(0.875rem, 4vw, 1.5rem);
+  color: var(--ink);
+  background: #fbf8fc;
+  border-color: #d9c9e2;
+}
+
+.persona-title {
+  display: block;
+  font: 700 clamp(1.85rem, 6vw, 2.4rem)/1.2 var(--display);
+  text-align: center;
+}
+
+.persona-subtitle {
+  margin: 0.5rem 0 0;
+  color: #604177;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  font-style: italic;
+  text-align: center;
+}
+
+.persona-rule {
+  max-inline-size: 52ch;
+  margin: 0.875rem auto 0;
+  padding-top: 0.75rem;
+  font-size: 1.0625rem;
+  line-height: 1.55;
+  text-align: start;
+}
+
+.narrow-line {
+  max-width: 3rem;
+  min-width: 2rem;
+}

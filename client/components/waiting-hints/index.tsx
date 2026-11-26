@@ -1,21 +1,25 @@
 import { useState } from 'react';
+import './style.css';
 
 const hints = [
   'By default, challengers score 2 points per vote. Pay attention, some personas change this.',
   'Provided there is enough time, you can always change your response by clicking “Change your mind?”',
   'Some personas punish challengers.',
+  'If a persona does not mention a default rule, that rule is still in effect.',
   'By default, the challenger(s) with the most votes out of all players that round scores double.',
-  'Usually, if an answer receives all challenges and no support, the round ends immediately and no one scores. Some personas change this rule…',
+  'Usually, if an answer receives all challenges and no support, the round ends immediately and the answering player loses a point. Some personas change this rule…',
   'If an answer seems intentionally bad, there might be a good reason for that...',
   'A retained vote is a support vote that stays on the original answer through the end of final voting.',
   'If you do not support or challenge an answer before the timer runs out, you will automatically vote “support.”',
+  'It is possible to gain and lose points in the same turn',
   'Duplicate or closely related answers should be disqualified. Click “Report Duplicates” to put them to a vote.',
-  'Personas are randomly selected each turn. The same persona can appear more than once in a game.',
+  'Personas are drawn from a shuffled deck. Once the deck runs out, every persona becomes available again.',
   'It’s in the spirit of the game to avoid collusion.',
   'If you lose connection, rejoin with the room code to reclaim your seat.',
   'If you challenge, you cannot vote that round.',
   'Challengers can flag duplicate answers.',
-  'Disqualified challengers can still be penalized by the modifier.'
+  'Disqualified challengers can still be penalized by the modifier.',
+  'Some personas reward supporters more than other players'
 ];
 
 export function WaitingHints() {
@@ -39,7 +43,7 @@ export function WaitingHints() {
       >
         <img
           className='hint-icon'
-          src={new URL('./assets/win95-info.png', import.meta.url).href}
+          src={new URL('../../assets/win95-info.png', import.meta.url).href}
           alt=''
         />
         <span className='hint-copy'>

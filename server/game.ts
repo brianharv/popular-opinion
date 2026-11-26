@@ -12,7 +12,6 @@ import { personas, scorePersona } from './personas';
 export const durations = {
   'turn-intro': 3_000,
   'persona-preview': 10_000,
-  'prompt-preview': 5_000,
   answering: 20_000,
   response: 30_000,
   voting: 15_000,
@@ -229,12 +228,6 @@ export function advance(turn: Turn, now: number): Turn {
     case 'persona-preview':
       return {
         ...turn,
-        phase: 'prompt-preview',
-        deadline: now + turn.durations['prompt-preview']
-      };
-    case 'prompt-preview':
-      return {
-        ...turn,
         phase: 'answering',
         deadline: now + turn.durations.answering
       };
@@ -316,7 +309,7 @@ export function view(
   const { phase, deadline, answeringId, prompt, original, challenges, result } =
     turn;
   const answering = answeringId === you;
-  const previewing = phase === 'turn-intro' || phase === 'persona-preview' || phase === 'prompt-preview';
+  const previewing = phase === 'turn-intro' || phase === 'persona-preview';
   const entries = turn.review ? challenges.filter(({ id }) => turn.review!.answerIds.includes(id))
     : !original ? []
     : phase === 'voting' ? [original, ...challenges]
@@ -327,7 +320,7 @@ export function view(
     phase,
     deadline,
     answeringId,
-    prompt: previewing && (!answering || phase !== 'prompt-preview') ? undefined : prompt,
+    prompt: previewing ? undefined : prompt,
     result,
     turnId: turn.id,
     phaseDuration: phase === 'complete' ? undefined : turn.durations[phase],
@@ -335,12 +328,11 @@ export function view(
       !answering && previewing && deadline !== undefined
         ? {
             deadline: deadline
-              + (phase === 'turn-intro' ? turn.durations['persona-preview'] : 0)
-              + (phase !== 'prompt-preview' ? turn.durations['prompt-preview'] : 0),
-            duration: turn.durations['turn-intro'] + turn.durations['persona-preview'] + turn.durations['prompt-preview']
+              + (phase === 'turn-intro' ? turn.durations['persona-preview'] : 0),
+            duration: turn.durations['turn-intro'] + turn.durations['persona-preview']
           }
         : undefined,
-    persona: !result && answering && phase !== 'turn-intro' && phase !== 'prompt-preview' ? turn.persona : undefined,
+    persona: !result && answering && phase !== 'turn-intro' ? turn.persona : undefined,
     entries: entries.map(({ id, text, disqualified }) => ({ id, text, disqualified })),
     canFlagDuplicates: phase === 'voting' && canFlagDuplicates(turn, you),
     duplicateReview: turn.review && {

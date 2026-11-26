@@ -1158,7 +1158,7 @@ function Turn({
       <div className='round-preview'>
         <section className='card turn-transition horizontal-center'>
           <h1>{name(view.answeringId!)}’s turn.</h1>
-          <p>Please wait while they review the prompt and persona.</p>
+          <p>Please wait while they review their persona.</p>
         </section>
       </div>
     );
@@ -1167,7 +1167,6 @@ function Turn({
   if (
     phase === 'turn-intro' ||
     phase === 'persona-preview' ||
-    phase === 'prompt-preview' ||
     (phase === 'answering' && !answering)
   ) {
     return (
